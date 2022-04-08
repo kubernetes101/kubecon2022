@@ -22,4 +22,6 @@ metadata:
 apiVersion: v1
 kind: Namespace
 metadata:
+  labels:
+    name: imdb
   name: imdb
