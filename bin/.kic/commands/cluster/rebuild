@@ -7,4 +7,4 @@
 # cd "$(dirname "${BASH_SOURCE[0]}")" || exit
 
 "$(dirname "${BASH_SOURCE[0]}")/create"
-"$(dirname "${BASH_SOURCE[0]}")/deploy"
+# "$(dirname "${BASH_SOURCE[0]}")/deploy"
