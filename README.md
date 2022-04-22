@@ -1,38 +1,23 @@
-# Kubernetes in Codespaces
-
-> Setup a Kubernetes cluster using `k3d` running in [GitHub Codespaces](https://github.com/features/codespaces)
+# Intro to Kubernetes, GitOps, and Observability Hands-On Tutorial
 
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
 
 ## Overview
 
-This is a template that will setup a Kubernetes developer cluster using `k3d` in a `GitHub Codespace`
+This tutorial offers newcomers a quick way to experience Kubernetes and its natural evolutionary developments: GitOps and Observability. Attendees will be able to use and experience the benefits of Kubernetes that impact reliability, velocity, security, and more. The session will cover key concepts and practices, as well as offer attendees a way to experience the commands in real-time.
 
-We use this for `inner-loop` Kubernetes development. Note that it is not appropriate for production use but is a great `Developer Experience`. Feedback calls the approach `game-changing` - we hope you agree!
+We use this Codespaces platform for `inner-loop` Kubernetes training and development. Note that it is not appropriate for production use but is a great `Developer Experience`. Feedback calls the approach `game-changing` - we hope you agree!
 
-For ideas, feature requests, and discussions, please use GitHub discussions so we can collaborate and follow up.
+## Join the Kubernetes101 GitHub Org
 
-This Codespace is tested with `zsh` and `oh-my-zsh`.
-
-You can connect to the Codespace with a local version of VS Code.
-
-Please experiment and add any issues to the GitHub Discussion.
-
-The motivation for creating and using Codespaces is highlighted by this [GitHub Blog Post](https://github.blog/2021-08-11-githubs-engineering-team-moved-codespaces/). "It eliminated the fragility and single-track model of local development environments, but it also gave us a powerful new point of leverage for improving GitHub’s developer experience."
-
-Cory Wilkerson, Senior Director of Engineering at GitHub, recorded a podcast where he shared the GitHub journey to [Codespaces](https://changelog.com/podcast/459)
-
-## Join the CSE-Labs GitHub Org
-
-> You must be a member of the Microsoft OSS and CSE-Labs GitHub organizations
+> You must be a member of the Kubernetes101 GitHub organization
 
 - If you can't open a Codespace in this repo, you need to join the GitHub org(s)
-  - Instructions for joining are [here](https://github.com/cse-labs/moss)
-- Return to this repo after joining the org(s)
+  - Join the org by going [here](https://kube101.dev/)
+- Return to this repo after joining the org
 
 ## Open with Codespaces
 
-> You must be a member of the Microsoft OSS and CSE-Labs GitHub organizations
 
 - Click the `Code` button on this repo
 - Click the `Codespaces` tab
@@ -96,7 +81,7 @@ Cory Wilkerson, Senior Director of Engineering at GitHub, recorded a podcast whe
 
   ```
 
-![Running Codespace](./images/RunningCodespace.png)
+![Running Codespace](./images/RunningCodespace.png) TODO change image ^
 
 ## Validate Deployment
 
@@ -278,6 +263,7 @@ A `jump box` pod is created so that you can execute commands `in the cluster`
 - Grafana login info
   - admin
   - cse-labs
+  <!-- TODO Change this to kube101 -->
 
 - Click on the `ports` tab of the terminal window
   - Click on the `open in browser icon` on the Grafana port (32000)

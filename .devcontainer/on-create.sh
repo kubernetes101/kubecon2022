@@ -45,14 +45,6 @@ docker pull mcr.microsoft.com/dotnet/sdk:5.0
 docker pull mcr.microsoft.com/dotnet/aspnet:6.0-alpine
 docker pull mcr.microsoft.com/dotnet/sdk:6.0
 docker pull ghcr.io/cse-labs/webv-red:latest
-docker pull ghcr.io/cse-labs/webv-red:beta
-
-echo "dowloading kic CLI"
-version=$(git ls-remote --refs --sort="version:refname" --tags https://github.com/retaildevcrews/akdc | cut -d/ -f3-|tail -n1)
-wget -O kic.tar.gz "https://github.com/retaildevcrews/akdc/releases/download/$version/kic-$version-linux-amd64.tar.gz"
-tar -xvzf kic.tar.gz
-rm kic.tar.gz
-mv kic bin
 
 echo "generating kic completion"
 kic completion zsh > "$HOME/.oh-my-zsh/completions/_kic"

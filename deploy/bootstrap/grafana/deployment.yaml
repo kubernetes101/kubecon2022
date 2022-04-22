@@ -21,7 +21,7 @@ metadata:
 type: Opaque
 data:
   username: YWRtaW4=
-  password: Y3NlLWxhYnM=
+  password: Y3NlLWxhYnM= #TODO Change this to kube101
 
 ---
 
