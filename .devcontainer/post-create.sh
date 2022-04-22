@@ -9,5 +9,8 @@ echo "$(date)    post-create start" >> "$HOME/status"
 git -C /workspaces/imdb-app pull
 git -C /workspaces/webvalidate pull
 
+# install Flux
+flux install >> ~/status
+
 echo "post-create complete"
 echo "$(date +'%Y-%m-%d %H:%M:%S')    post-create complete" >> "$HOME/status"

@@ -57,6 +57,11 @@ mv kic bin
 echo "generating kic completion"
 kic completion zsh > "$HOME/.oh-my-zsh/completions/_kic"
 
+echo "installing flux binary"
+curl --location --silent --output /tmp/flux.tar.gz "https://github.com/fluxcd/flux2/releases/download/v0.28.4/flux_0.28.4_linux_amd64.tar.gz"
+tar --extract --gzip --directory /usr/local/bin --file /tmp/flux.tar.gz
+rm /tmp/flux.tar.gz
+
 echo "creating k3d cluster"
 kic cluster rebuild
 

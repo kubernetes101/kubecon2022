@@ -18,6 +18,12 @@
 		"files.insertFinalNewline": true
 	},
 
+	"containerEnv": {
+		"organization": "kubernetes101",
+		"repository": "kubecon2022",
+		"deploymentPath": "/deploy"
+	},
+
 	"hostRequirements": {
 		"cpus": 4
 	},
