@@ -18,33 +18,56 @@ We use this Codespaces platform for `inner-loop` Kubernetes training and develop
 
 ## Open with Codespaces
 
-
 - Click the `Code` button on this repo
 - Click the `Codespaces` tab
-- Click `New Codespace`
-- Choose the `4 core` option
+- Click `Create codespace on main`
 
+<!-- TODO: Update image below -->
 ![Create Codespace](./images/OpenWithCodespaces.jpg)
 
-## Stopping a Codespace
 
-- Codespaces will shutdown automatically after being idle for 30 minutes
-- To shutdown a codespace immediately
-  - Click `Codespaces` in the lower left of the browser window
-  - Choose `Stop Current Codespace` from the context menu
+![Running Codespace](./images/RunningCodespace.png)
 
-- You can also rebuild the container that is running your Codespace
-  - Any changes in `/workspaces` will be retained
-  - Other directories will be reset
-  - Click `Codespaces` in the lower left of the browser window
-  - Choose `Rebuild Container` from the context menu
-  - Confirm your choice
+<!-- TODO change image ^ -->
 
-- To delete a Codespace
-  - <https://github.com/codespaces>
-  - Use the context menu to delete the Codespace
-  - Please delete your Codespace once you complete the lab
-    - Creating a new Codespace only takes about 45 seconds!
+## Checking the k3d Cluster
+
+- A k3d cluster is automatically created as part of the Codespace setup
+
+  ```bash
+
+  # check the namespaces
+  kubectl get ns
+
+  # check the pods
+  kubectl get pods -A
+
+  # check the services
+  kubectl get services -A
+
+  ```
+
+- Output from `kubectl get pods -A` should resemble this
+
+  ```text
+
+  NAMESPACE     NAME                                      READY   STATUS              RESTARTS   AGE
+  kube-system   metrics-server-86cbb8457f-qlp8v           1/1     Running             0          48s
+  kube-system   local-path-provisioner-5ff76fc89d-wfpjx   1/1     Running             0          48s
+  kube-system   coredns-7448499f4d-dnjzl                  1/1     Running             0          48s
+  kube-system   helm-install-traefik-crd-zk5gr            0/1     Completed           0          48s
+  kube-system   helm-install-traefik-mbr2l                0/1     Completed           1          48s
+  kube-system   svclb-traefik-2ks5t                       2/2     Running             0          22s
+  kube-system   traefik-97b44b794-txs9h                   1/1     Running             0          22s
+
+  ```
+
+## Introduction to Kuberenetes
+<!-- TODO Instructions-->
+- Review IMDB App yaml (Deploy, service, NodePort)
+- Apply YAML
+- Validate Deployment via http or curl
+- Open IMDB Swagger in Browser
 
 ## GitOps with Flux
 
@@ -53,7 +76,8 @@ Flux has been installed into the k3d cluster, and the Flux CLI is included in th
 First, you will need to create a Flux GitRepository. The Flux GitRepository allows the Flux Source Controller to
 know which Git Repository and branch it should monitor.
 
-```
+```bash
+
 export BRANCH=your-branch-here
 
 flux create source git "${organization}-${repository}" \
@@ -62,6 +86,7 @@ flux create source git "${organization}-${repository}" \
     --namespace flux-system \
     --username PersonalAccessToken \
     --password ${GITHUB_TOKEN}
+
 ```
 
 Next, create a Flux Kustomization. The Flux Kustomization allows the Flux Kustomize Controller to know where in the
@@ -70,18 +95,21 @@ GitRepository to find your declaratively defined desired state.
 We will first create a Kustomization for the Observability components. In our Kustomizations, the `path` is defined as `/deploy/observability`; this means that Flux will
 look in the `/deploy/observability` folder in your branch within the kubernetes101/kubecon2022 repository.
 
-```
+```bash
+
 flux create kustomization "observability" \
     --source GitRepository/"${organization}-${repository}" \
     --path "/deploy/observability" \
     --namespace flux-system \
     --prune true \
     --interval 1m
+
 ```
 
 We will then create a Kustomization for the IMDB Application. Note that the "application" Kustomization depends on the "observability" Kustomization.
 
-```
+```bash
+
 flux create kustomization "application" \
     --source GitRepository/"${organization}-${repository}" \
     --path "/deploy/application" \
@@ -89,54 +117,6 @@ flux create kustomization "application" \
     --prune true \
     --depends-on observability \
     --interval 1m
-```
-
-
-## Checking the k3d Cluster
-
-- A k3d cluster is created as part of the Codespace setup
-  - `kic` is a small CLI that we use to simplify Kubernetes development
-
-  ```bash
-
-  # check the pods
-  kic pods
-
-  ```
-
-- Output from `kic pods` should resemble this
-
-  ```text
-
-  NAMESPACE     NAME                                      READY   STATUS              RESTARTS   AGE
-  kube-system   local-path-provisioner-5ff76fc89d-wfpjx   1/1     Running             0          48s
-  kube-system   coredns-7448499f4d-dnjzl                  1/1     Running             0          48s
-  kube-system   metrics-server-86cbb8457f-qlp8v           1/1     Running             0          48s
-  logging       fluentbit-f6c6d757b-mjh7r                 1/1     Running             0          32s
-  kube-system   helm-install-traefik-crd-zk5gr            0/1     Completed           0          48s
-  kube-system   helm-install-traefik-mbr2l                0/1     Completed           1          48s
-  heartbeat     heartbeat-65978f8f88-dw9fn                1/1     Running             0          32s
-  default       jumpbox                                   1/1     Running             0          32s
-  imdb          imdb-79d8c756b-2p465                      1/1     Running             0          33s
-  monitoring    grafana-5df456f89c-2r6cm                  1/1     Running             0          32s
-  kube-system   svclb-traefik-2ks5t                       2/2     Running             0          22s
-  kube-system   traefik-97b44b794-txs9h                   1/1     Running             0          22s
-  heartbeat     webv-heartbeat-776cbf6fbf-jvk5x           1/1     Running             0          32s
-  imdb          webv-796c76d69d-5ghnq                     1/1     Running             0          4s
-  monitoring    prometheus-deployment-5c57d9b77d-tdtn2    1/1     Running             0          32s
-
-  ```
-
-![Running Codespace](./images/RunningCodespace.png) TODO change image ^
-
-## Validate Deployment
-
-- If you get an error, just run the command again - it will clear once the services are ready
-
-```bash
-
-# check endpoints
-kic check all
 
 ```
 
@@ -154,25 +134,6 @@ Clicking on `Send Request` should open a new panel in Visual Studio Code with th
 
 ![REST Client example response](./images/RESTClientResponse.png)
 
-## Jump Box
-
-A `jump box` pod is created so that you can execute commands `in the cluster`
-
-- use the `kj` alias
-  - example
-    - run `kj`
-      - Your terminal prompt will change
-      - From the `jumpbox` terminal
-      - Run `http imdb.imdb.svc.cluster.local:8080/version`
-      - `exit` back to the Codespaces terminal
-
-- use the `kje` alias
-  - example
-    - run http against the ClusterIP
-      - `kje http imdb.imdb.svc.cluster.local:8080/version`
-
-- Since the jumpbox is running `in` the cluster, we use the service name and port, not the NodePort
-  - A jumpbox is great for debugging network issues
 
 ## NodePorts
 
@@ -221,29 +182,6 @@ A `jump box` pod is created so that you can execute commands `in the cluster`
 - This will open the heartbeat home page (Swagger) in a new browser tab
   - Note that you will see page `Under construction ...` as heartbeat does not have a UI
   - Add `version` or `/heartbeat/17` to the end of the URL in the browser tab
-
-## Build and deploy a local version of imdb-app
-
-- We have a local Docker container registry running in the Codespace
-  - Run `docker ps` to see the running images
-- Build the WebAPI app from the local source code
-- Push to the local Docker registry
-- Deploy to local k3d cluster
-
-- Switch back to your Codespaces tab
-
-  ```bash
-
-  # from Codespaces terminal
-
-  # make and deploy a local version of imdb-app to k8s
-  kic build imdb
-
-  # check the app version
-  # the semver will have the current date and time
-  http localhost:30080/version
-
-  ```
 
 ## Validate deployment with k9s
 
@@ -353,7 +291,51 @@ kic test load
 
 ![Load Test](./images/test-with-errors-and-load-test.png)
 
-## How Codespaces is built
+## Troubleshooting
+
+### Stopping a Codespace
+
+- Codespaces will shutdown automatically after being idle for 30 minutes
+- To shutdown a codespace immediately
+  - Click `Codespaces` in the lower left of the browser window
+  - Choose `Stop Current Codespace` from the context menu
+
+### Rebuilding a Codespace
+
+- You can also rebuild the container that is running your Codespace
+  - Any changes in `/workspaces` will be retained
+  - Other directories will be reset
+  - Click `Codespaces` in the lower left of the browser window
+  - Choose `Rebuild Container` from the context menu
+  - Confirm your choice
+
+### Deleting a Codespace
+
+    - <https://github.com/codespaces>
+    - Use the context menu to delete the Codespace
+    - Please delete your Codespace once you complete the lab
+    - Creating a new Codespace only takes about 45 seconds!
+
+## FAQ
+
+- Why don't we use helm to deploy Kubernetes manifests?
+  - The target audience for this repository is app developers so we chose simplicity for the Developer Experience.
+  - In our daily work, we use Helm for deployments and it is installed in the `Codespace` should you want to use it.
+- Why `k3d` instead of `Kind`?
+  - We love kind! Most of our code will run unchanged in kind (except the cluster commands)
+  - We had to choose one or the other as we don't have the resources to validate both
+  - We chose k3d for these main reasons
+    - Smaller memory footprint
+    - Faster startup time
+    - Secure by default
+      - K3s supports the [CIS Kubernetes Benchmark](https://rancher.com/docs/k3s/latest/en/security/hardening_guide/)
+    - Based on [K3s](https://rancher.com/docs/k3s/latest/en/) which is a certified Kubernetes distro
+      - Many customers run K3s on the edge as well as in CI-CD pipelines
+    - Rancher provides support - including 24x7 (for a fee)
+    - K3s has a vibrant community
+    - K3s is a CNCF sandbox project
+
+- How is Codespaces built?
 
 Codespaces extends the use of development containers by providing a remote hosting environment. A development container is a fully-featured development environment running in a Docker container.
 
@@ -380,47 +362,8 @@ Developers can simply click on a button in GitHub to open a Codespace for the re
 
   > Note: Provide executable permissions to scripts using: `chmod+ x`.
 
-## Next Steps
 
-> Explore your Kubernetes in Codespaces cluster
-
-- kic CLI
-- K9s
-- kubectl
-- Docker
-
-If you break your cluster, just rebuild it using
-
-```bash
-
-kic cluster rebuild
-
-```
-
-## FAQ
-
-- Why don't we use helm to deploy Kubernetes manifests?
-  - The target audience for this repository is app developers so we chose simplicity for the Developer Experience.
-  - In our daily work, we use Helm for deployments and it is installed in the `Codespace` should you want to use it.
-- Why `k3d` instead of `Kind`?
-  - We love kind! Most of our code will run unchanged in kind (except the cluster commands)
-  - We had to choose one or the other as we don't have the resources to validate both
-  - We chose k3d for these main reasons
-    - Smaller memory footprint
-    - Faster startup time
-    - Secure by default
-      - K3s supports the [CIS Kubernetes Benchmark](https://rancher.com/docs/k3s/latest/en/security/hardening_guide/)
-    - Based on [K3s](https://rancher.com/docs/k3s/latest/en/) which is a certified Kubernetes distro
-      - Many customers run K3s on the edge as well as in CI-CD pipelines
-    - Rancher provides support - including 24x7 (for a fee)
-    - K3s has a vibrant community
-    - K3s is a CNCF sandbox project
-
-### Engineering Docs
-
-- Team Working [Agreement](.github/WorkingAgreement.md)
-- Team [Engineering Practices](.github/EngineeringPractices.md)
-- CSE Engineering Fundamentals [Playbook](https://github.com/Microsoft/code-with-engineering-playbook)
+<!-- TODO Review the following: -->
 
 ## How to file issues and get help
 
