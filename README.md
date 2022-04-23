@@ -46,6 +46,52 @@ We use this Codespaces platform for `inner-loop` Kubernetes training and develop
   - Please delete your Codespace once you complete the lab
     - Creating a new Codespace only takes about 45 seconds!
 
+## GitOps with Flux
+
+Flux has been installed into the k3d cluster, and the Flux CLI is included in the workshop codespaces.
+
+First, you will need to create a Flux GitRepository. The Flux GitRepository allows the Flux Source Controller to
+know which Git Repository and branch it should monitor.
+
+```
+export BRANCH=your-branch-here
+
+flux create source git "${organization}-${repository}" \
+    --url "https://github.com/${organization}/${repository}" \
+    --branch $BRANCH \
+    --namespace flux-system \
+    --username PersonalAccessToken \
+    --password ${GITHUB_TOKEN}
+```
+
+Next, create a Flux Kustomization. The Flux Kustomization allows the Flux Kustomize Controller to know where in the
+GitRepository to find your declaratively defined desired state.
+
+We will first create a Kustomization for the Observability components. In our Kustomizations, the `path` is defined as `/deploy/observability`; this means that Flux will
+look in the `/deploy/observability` folder in your branch within the kubernetes101/kubecon2022 repository.
+
+```
+flux create kustomization "observability" \
+    --source GitRepository/"${organization}-${repository}" \
+    --path "/deploy/observability" \
+    --namespace flux-system \
+    --prune true \
+    --interval 1m
+```
+
+We will then create a Kustomization for the IMDB Application. Note that the "application" Kustomization depends on the "observability" Kustomization.
+
+```
+flux create kustomization "application" \
+    --source GitRepository/"${organization}-${repository}" \
+    --path "/deploy/application" \
+    --namespace flux-system \
+    --prune true \
+    --depends-on observability \
+    --interval 1m
+```
+
+
 ## Checking the k3d Cluster
 
 - A k3d cluster is created as part of the Codespace setup
