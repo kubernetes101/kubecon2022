@@ -246,8 +246,7 @@ Clicking on `Send Request` should open a new panel in Visual Studio Code with th
 
 - Grafana login info
   - admin
-  - cse-labs
-  <!-- TODO Change this to kube101 -->
+  - kubecon101
 
 - Click on the `ports` tab of the terminal window
   - Click on the `open in browser icon` on the Grafana port (32000)
