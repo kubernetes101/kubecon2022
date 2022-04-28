@@ -22,7 +22,7 @@ spec:
     spec:
       containers:
         - name: app
-          image: ghcr.io/cse-labs/webv-red:latest
+          image: ghcr.io/kubernetes101/webv-red:latest
           imagePullPolicy: Always
 
           ports:

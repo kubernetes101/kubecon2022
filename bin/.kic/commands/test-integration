@@ -10,5 +10,5 @@
 # you can call directly if you validate all of the WebV parameters
 #   or let WebV handle the errors
 
-docker run --net host --rm ghcr.io/cse-labs/webv-red:beta --server http://localhost:30080 --files imdb-baseline.json "$@"
-docker run --net host --rm ghcr.io/cse-labs/webv-red:beta --server http://localhost:31080 --files heartbeat-baseline.json "$@"
+docker run --net host --rm ghcr.io/kubernetes101/webv-red:beta --server http://localhost:30080 --files imdb-baseline.json "$@"
+docker run --net host --rm ghcr.io/kubernetes101/webv-red:beta --server http://localhost:31080 --files heartbeat-baseline.json "$@"

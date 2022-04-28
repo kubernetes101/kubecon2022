@@ -7,4 +7,4 @@
 #cd "$(dirname "${BASH_SOURCE[0]}")" || exit
 
 kubectl delete pod jumpbox --ignore-not-found=true
-kubectl run jumpbox --image=ghcr.io/cse-labs/jumpbox --restart=Always
+kubectl run jumpbox --image=ghcr.io/kubernetes101/jumpbox --restart=Always

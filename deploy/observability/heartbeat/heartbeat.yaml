@@ -22,7 +22,7 @@ spec:
     spec:
       containers:
         - name: app
-          image: ghcr.io/cse-labs/heartbeat:latest
+          image: ghcr.io/kubernetes101/heartbeat:latest
           imagePullPolicy: Always
           resources:
             limits:
