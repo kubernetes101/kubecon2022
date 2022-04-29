@@ -5,9 +5,6 @@
 echo "on-create start"
 echo "$(date +'%Y-%m-%d %H:%M:%S')    on-create start" >> "$HOME/status"
 
-# clone repos
-git clone https://github.com/microsoft/webvalidate /workspaces/webvalidate
-
 export REPO_BASE=$PWD
 export PATH="$PATH:$REPO_BASE/bin"
 
@@ -28,12 +25,12 @@ sudo apt-get upgrade -y
 sudo apt-get autoremove -y
 sudo apt-get clean -y
 
+# create local registry
+docker network create k3d
+k3d registry create registry.localhost --port 5500
+docker network connect k3d k3d-registry.localhost
+
 # update the base docker images
-# docker pull mcr.microsoft.com/dotnet/sdk:5.0-alpine
-# docker pull mcr.microsoft.com/dotnet/aspnet:5.0-alpine
-# docker pull mcr.microsoft.com/dotnet/sdk:5.0
-# docker pull mcr.microsoft.com/dotnet/aspnet:6.0-alpine
-# docker pull mcr.microsoft.com/dotnet/sdk:6.0
 docker pull ghcr.io/kubernetes101/webv-red:latest
 
 echo "generating kic completion"
