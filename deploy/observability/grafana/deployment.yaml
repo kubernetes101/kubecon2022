@@ -43,7 +43,7 @@ spec:
     spec:
       containers:
       - name: grafana
-        image: grafana/grafana:8.1.1
+        image: ghcr.io/kubernetes101/grafana:8.1.1
         ports:
         - name: grafana
           containerPort: 3000

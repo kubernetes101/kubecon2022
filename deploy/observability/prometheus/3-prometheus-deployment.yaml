@@ -17,12 +17,12 @@ spec:
     spec:
       containers:
         - name: prometheus
-          image: prom/prometheus:v2.29.1
+          image: ghcr.io/kubernetes101/prometheus:v2.29.1
           resources:
             limits:
               memory: "1024Mi"
               cpu: "1000m"
-            requests: 
+            requests:
               memory: "1024Mi"
               cpu: "1000m"
           args:
@@ -40,7 +40,7 @@ spec:
           configMap:
             defaultMode: 420
             name: prometheus-server-conf
-  
+
         - name: prometheus-storage-volume
           hostPath:
             path: /prometheus
@@ -55,12 +55,12 @@ metadata:
   annotations:
       prometheus.io/scrape: 'true'
       prometheus.io/port:   '9090'
-  
+
 spec:
-  selector: 
+  selector:
     app: prometheus-server
-  type: NodePort  
+  type: NodePort
   ports:
     - port: 8080
-      targetPort: 9090 
+      targetPort: 9090
       nodePort: 30000
