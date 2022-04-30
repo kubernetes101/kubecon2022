@@ -39,11 +39,11 @@ We use this Codespaces platform for `inner-loop` Kubernetes training and develop
   # check the namespaces
   kubectl get ns
 
-  # check the pods
-  kubectl get pods -A
-
   # check the services
   kubectl get services -A
+
+  # check the pods
+  kubectl get pods -A
 
   ```
 
@@ -63,7 +63,41 @@ We use this Codespaces platform for `inner-loop` Kubernetes training and develop
   ```
 
 ## Introduction to Kuberenetes
-<!-- TODO Instructions-->
+
+To get started using kubernetes, we will be manually deploying our IMDB application. This REST application written in .NET allows us to run an in-memory database that accepts several movie and actor queries.
+
+  ```bash
+
+  # navigate to the folder containing all our imdb application manifests
+  cd workshop-manifests/imdb
+
+  # create the namespace that will contain all of our imdb application
+  kubectl apply -f 01-namespace.yaml #(this also be accomplished by running `kubectl create ns imdb`)
+
+  # apply our deployment yaml
+  kubectl apply -f 02-deploy.yaml
+
+  # verify that our pods were created
+  kubectl get pods -n imdb
+
+  # check application logs
+  kubectl logs <pod name from above> -n imdb
+
+  # query our application's endpoint (this will fail)
+  http localhost:30080/healthz
+
+  # apply our service yaml
+  kubectl apply -f 03-service.yaml
+
+  # query our application's endpoint
+  http localhost:30080/healthz
+
+  # delete our deployments
+  kubectl delete ns imdb
+
+  ```
+
+
 - Review IMDB App yaml (Deploy, service, NodePort)
 - Apply YAML
 - Validate Deployment via http or curl
