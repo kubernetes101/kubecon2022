@@ -1,15 +1,14 @@
-## Purpose of PR
+# Purpose of PR
 
 -
 
 ## Type of PR
 
-- [ ] Documentation changes
 - [ ] Code changes
-- [ ] Test changes
+- [ ] Documentation changes
 - [ ] CI-CD changes
-- [ ] GitHub Template changes
+- [ ] YAML changes
 
-## Issues Closed
+## Issues Closed or Referenced
 
 - Closes #issue_number
