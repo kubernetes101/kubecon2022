@@ -113,7 +113,7 @@ know which Git Repository and branch it should monitor.
 
 ```bash
 
-export BRANCH=your-branch-here
+export BRANCH=$(git branch --show-current)
 
 flux create source git "${organization}-${repository}" \
     --url "https://github.com/${organization}/${repository}" \
