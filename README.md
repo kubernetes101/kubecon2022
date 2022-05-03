@@ -22,13 +22,11 @@ We use this Codespaces platform for `inner-loop` Kubernetes training and develop
 - Click the `Codespaces` tab
 - Click `Create codespace on main`
 
-<!-- TODO: Update image below -->
 ![Create Codespace](./images/OpenWithCodespaces.jpg)
 
+- Your running codespace should look like something like this:
 
 ![Running Codespace](./images/RunningCodespace.png)
-
-<!-- TODO change image ^ -->
 
 ## Checking the k3d Cluster
 
@@ -39,11 +37,11 @@ We use this Codespaces platform for `inner-loop` Kubernetes training and develop
   # check the namespaces
   kubectl get ns
 
-  # check the pods
-  kubectl get pods -A
-
   # check the services
   kubectl get services -A
+
+  # check the pods
+  kubectl get pods -A
 
   ```
 
@@ -63,11 +61,48 @@ We use this Codespaces platform for `inner-loop` Kubernetes training and develop
   ```
 
 ## Introduction to Kuberenetes
-<!-- TODO Instructions-->
-- Review IMDB App yaml (Deploy, service, NodePort)
-- Apply YAML
-- Validate Deployment via http or curl
-- Open IMDB Swagger in Browser
+
+To get started using kubernetes, we will be manually deploying our IMDB application. This REST application written in .NET allows us to run an in-memory database that accepts several movie and actor queries.
+
+  ```bash
+
+  # navigate to the folder containing all our imdb application manifests
+  cd workshop-manifests/imdb
+
+  # create the namespace that will contain all of our imdb application
+  kubectl apply -f 01-namespace.yaml #(this also be accomplished by running `kubectl create ns imdb`)
+
+  # check that imdb namespace was created
+  kubectl get ns
+
+  # apply our deployment yaml
+  kubectl apply -f 02-deploy.yaml
+
+  # verify that our pods were created
+  kubectl get pods -n imdb
+
+  # check application logs
+  kubectl logs <pod name from above> -n imdb
+
+  # query our application's endpoint (this is expected to fail)
+  http localhost:30080/healthz
+
+  # apply our service yaml
+  kubectl apply -f 03-service.yaml
+
+  # query our application's endpoint
+  http localhost:30080/healthz
+
+  # delete our deployments
+  kubectl delete service imdb -n imdb
+
+  kubectl delete pod <pod name> imdb -n imdb # notice what happens when a pod gets deleted
+
+  kubectl delete deploy -n imdb
+
+  kubectl delete ns imdb # this will not only remove the namespace, but all of the resources associated to it
+
+  ```
 
 ## GitOps with Flux
 
@@ -361,29 +396,16 @@ Developers can simply click on a button in GitHub to open a Codespace for the re
 
   > Note: Provide executable permissions to scripts using: `chmod+ x`.
 
+## Support
 
-<!-- TODO Review the following: -->
-
-## How to file issues and get help
-
-This project uses GitHub Issues to track bugs and feature requests. Please search the existing issues before filing new issues to avoid duplicates. For new issues, file your bug or feature request as a new issue.
-
-For help and questions about using this project, please open a GitHub issue.
+This project uses GitHub Issues to track bugs and feature requests. Please search the existing issues before filing new issues to avoid duplicates.  For new issues, file your bug or feature request as a new issue.
 
 ## Contributing
 
-This project welcomes contributions and suggestions.  Most contributions require you to agree to a Contributor License Agreement (CLA) declaring that you have the right to, and actually do, grant us the rights to use your contribution. For details, visit <https://cla.opensource.microsoft.com>
+This project welcomes contributions and suggestions and has adopted the [Contributor Covenant Code of Conduct](https://www.contributor-covenant.org/version/2/1/code_of_conduct.html).
 
-When you submit a pull request, a CLA bot will automatically determine whether you need to provide a CLA and decorate the PR appropriately (e.g., status check, comment). Simply follow the instructions provided by the bot. You will only need to do this once across all repos using our CLA.
-
-This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/). For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
+For more information see [Contributing.md](./.github/CONTRIBUTING.md)
 
 ## Trademarks
 
-This project may contain trademarks or logos for projects, products, or services.
-
-Authorized use of Microsoft trademarks or logos is subject to and must follow [Microsoft's Trademark & Brand Guidelines](https://www.microsoft.com/en-us/legal/intellectualproperty/trademarks/usage/general).
-
-Use of Microsoft trademarks or logos in modified versions of this project must not cause confusion or imply Microsoft sponsorship.
-
-Any use of third-party trademarks or logos are subject to those third-party's policies.
+This project may contain trademarks or logos for projects, products, or services. Any use of third-party trademarks or logos are subject to those third-party's policies.
