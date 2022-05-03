@@ -22,13 +22,11 @@ We use this Codespaces platform for `inner-loop` Kubernetes training and develop
 - Click the `Codespaces` tab
 - Click `Create codespace on main`
 
-<!-- TODO: Update image below -->
 ![Create Codespace](./images/OpenWithCodespaces.jpg)
 
+- Your running codespace should look like something like this:
 
 ![Running Codespace](./images/RunningCodespace.png)
-
-<!-- TODO change image ^ -->
 
 ## Checking the k3d Cluster
 
@@ -74,6 +72,9 @@ To get started using kubernetes, we will be manually deploying our IMDB applicat
   # create the namespace that will contain all of our imdb application
   kubectl apply -f 01-namespace.yaml #(this also be accomplished by running `kubectl create ns imdb`)
 
+  # check that imdb namespace was created
+  kubectl get ns
+
   # apply our deployment yaml
   kubectl apply -f 02-deploy.yaml
 
@@ -83,7 +84,7 @@ To get started using kubernetes, we will be manually deploying our IMDB applicat
   # check application logs
   kubectl logs <pod name from above> -n imdb
 
-  # query our application's endpoint (this will fail)
+  # query our application's endpoint (this is expected to fail)
   http localhost:30080/healthz
 
   # apply our service yaml
@@ -93,15 +94,15 @@ To get started using kubernetes, we will be manually deploying our IMDB applicat
   http localhost:30080/healthz
 
   # delete our deployments
-  kubectl delete ns imdb
+  kubectl delete service imdb -n imdb
+
+  kubectl delete pod <pod name> imdb -n imdb # notice what happens when a pod gets deleted
+
+  kubectl delete deploy -n imdb
+
+  kubectl delete ns imdb # this will not only remove the namespace, but all of the resources associated to it
 
   ```
-
-
-- Review IMDB App yaml (Deploy, service, NodePort)
-- Apply YAML
-- Validate Deployment via http or curl
-- Open IMDB Swagger in Browser
 
 ## GitOps with Flux
 
@@ -394,7 +395,6 @@ Developers can simply click on a button in GitHub to open a Codespace for the re
   For more information on using Lifecycle scripts, see [Codespaces lifecycle scripts](https://code.visualstudio.com/docs/remote/devcontainerjson-reference#_lifecycle-scripts).
 
   > Note: Provide executable permissions to scripts using: `chmod+ x`.
-
 
 ## Support
 
