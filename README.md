@@ -126,8 +126,7 @@ flux create source git "${organization}-${repository}" \
   --url "https://github.com/${organization}/${repository}" \
   --branch $BRANCH \
   --namespace flux-system \
-  --username PersonalAccessToken \
-  --password ${GITHUB_TOKEN}
+  --secret-ref flux-system
 
 ```
 
