@@ -115,12 +115,19 @@ know which Git Repository and branch it should monitor.
 
 export BRANCH=$(git branch --show-current)
 
+flux bootstrap git \
+  --url "https://github.com/${organization}/${repository}" \
+  --branch $BRANCH \
+  --token-auth \
+  --password ${GITHUB_TOKEN} \
+  --path "/deploy/bootstrap"
+
 flux create source git "${organization}-${repository}" \
-    --url "https://github.com/${organization}/${repository}" \
-    --branch $BRANCH \
-    --namespace flux-system \
-    --username PersonalAccessToken \
-    --password ${GITHUB_TOKEN}
+  --url "https://github.com/${organization}/${repository}" \
+  --branch $BRANCH \
+  --namespace flux-system \
+  --username PersonalAccessToken \
+  --password ${GITHUB_TOKEN}
 
 ```
 
