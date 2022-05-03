@@ -21,9 +21,15 @@ mkdir -p "$HOME/.oh-my-zsh/completions"
 
 # make sure everything is up to date
 sudo apt-get update
-sudo apt-get upgrade -y
-sudo apt-get autoremove -y
-sudo apt-get clean -y
+
+# only run apt upgrade on pre-build
+if [ "$CODESPACE_NAME" = "null" ]
+then
+    echo "$(date +'%Y-%m-%d %H:%M:%S')    upgrading" >> "$HOME/status"
+    sudo apt-get upgrade -y
+    sudo apt-get autoremove -y
+    sudo apt-get clean -y
+fi
 
 # create local registry
 docker network create k3d
@@ -50,7 +56,6 @@ kic cluster create
 
 echo "creating installing"
 flux install >> "$HOME/status"
-
 
 echo "on-create complete"
 echo "$(date +'%Y-%m-%d %H:%M:%S')    on-create complete" >> "$HOME/status"
