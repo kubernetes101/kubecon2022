@@ -113,14 +113,23 @@ know which Git Repository and branch it should monitor.
 
 ```bash
 
-export BRANCH=your-branch-here
+export BRANCH=$(git branch --show-current)
+
+flux bootstrap git \
+  --url "https://github.com/${organization}/${repository}" \
+  --branch $BRANCH \
+  --token-auth \
+  --password ${GITHUB_TOKEN} \
+  --path "/deploy/bootstrap"
+
+# pull the bootstrap files
+git pull
 
 flux create source git "${organization}-${repository}" \
-    --url "https://github.com/${organization}/${repository}" \
-    --branch $BRANCH \
-    --namespace flux-system \
-    --username PersonalAccessToken \
-    --password ${GITHUB_TOKEN}
+  --url "https://github.com/${organization}/${repository}" \
+  --branch $BRANCH \
+  --namespace flux-system \
+  --secret-ref flux-system
 
 ```
 
@@ -168,7 +177,6 @@ Open [curl.http](./curl.http)
 Clicking on `Send Request` should open a new panel in Visual Studio Code with the response from that request like so:
 
 ![REST Client example response](./images/RESTClientResponse.png)
-
 
 ## NodePorts
 
@@ -307,11 +315,13 @@ Clicking on `Send Request` should open a new panel in Visual Studio Code with th
 
 # from Codespaces terminal
 
+# run a 30 second load test in the background
+kic test load &
+
 # run an integration test (will generate warnings in Grafana)
 kic test integration
-
-# run a 30 second load test
-kic test load
+kic test integration
+kic test integration
 
 ```
 
