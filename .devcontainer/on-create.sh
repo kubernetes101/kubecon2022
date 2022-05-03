@@ -33,16 +33,24 @@ docker network connect k3d k3d-registry.localhost
 # update the base docker images
 docker pull ghcr.io/kubernetes101/webv-red:latest
 
-echo "generating kic completion"
-kic completion zsh > "$HOME/.oh-my-zsh/completions/_kic"
-
 echo "installing flux binary"
-curl --location --silent --output /tmp/flux.tar.gz "https://github.com/fluxcd/flux2/releases/download/v0.28.4/flux_0.28.4_linux_amd64.tar.gz"
-tar --extract --gzip --directory /usr/local/bin --file /tmp/flux.tar.gz
+sudo rm -f /usr/local/bin/flux
+curl --location --silent --output /tmp/flux.tar.gz "https://github.com/fluxcd/flux2/releases/download/v0.29.5/flux_0.29.5_linux_amd64.tar.gz"
+sudo tar --extract --gzip --directory /usr/local/bin --file /tmp/flux.tar.gz
 rm /tmp/flux.tar.gz
 
+echo "completions"
+kic completion zsh > "$HOME/.oh-my-zsh/completions/_kic"
+k3d completion zsh > "$HOME/.oh-my-zsh/completions/_k3d"
+kubectl completion zsh > "$HOME/.oh-my-zsh/completions/_kubectl"
+flux completion zsh > "$HOME/.oh-my-zsh/completions/_flux"
+
 echo "creating k3d cluster"
-kic cluster rebuild
+kic cluster create
+
+echo "creating installing"
+flux install >> "$HOME/status"
+
 
 echo "on-create complete"
 echo "$(date +'%Y-%m-%d %H:%M:%S')    on-create complete" >> "$HOME/status"
