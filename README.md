@@ -18,6 +18,16 @@ We use this Codespaces platform for `inner-loop` Kubernetes training and develop
 
 ## Open with Codespaces
 
+- For this workshop, you will need to create a branch within this repository. We recommend using your GitHub Username.
+
+```bash
+export BRANCH=$YOUR_GITHUB_USERNAME
+git checkout -b $BRANCH
+
+git push --set-upstream origin $BRANCH
+```
+
+- Select your branch in this repository
 - Click the `Code` button on this repo
 - Click the `Codespaces` tab
 - Click `Create codespace on main`
@@ -62,7 +72,7 @@ We use this Codespaces platform for `inner-loop` Kubernetes training and develop
 
 ## Introduction to Kuberenetes
 
-To get started using kubernetes, we will be manually deploying our IMDB application. This REST application written in .NET allows us to run an in-memory database that accepts several movie and actor queries.
+To get started using Kubernetes, we will be manually deploying our IMDB application. This REST application written in .NET allows us to run an in-memory database that accepts several movie and actor queries.
 
   ```bash
 
@@ -106,14 +116,38 @@ To get started using kubernetes, we will be manually deploying our IMDB applicat
 
 ## GitOps with Flux
 
-Flux has been installed into the k3d cluster, and the Flux CLI is included in the workshop codespaces.
-
-First, you will need to create a Flux GitRepository. The Flux GitRepository allows the Flux Source Controller to
-know which Git Repository and branch it should monitor.
+> Before moving on, please ensure that you have opened a Codespace for your specific branch
 
 ```bash
+echo $BRANCH
 
-export BRANCH=$(git branch --show-current)
+git branch
+```
+
+Flux has been installed into the k3d cluster, and the Flux CLI is included in the workshop codespaces.
+You can run a check using the Flux CLI to verify that Flux has successfully been installed. You should see the following output:
+
+```bash
+$ flux check
+
+► checking prerequisites
+✗ flux 0.29.5 <0.30.2 (new version is available, please upgrade)
+✔ Kubernetes 1.21.3+k3s1 >=1.20.6-0
+► checking controllers
+✔ notification-controller: deployment ready
+► ghcr.io/fluxcd/notification-controller:v0.23.4
+✔ helm-controller: deployment ready
+► ghcr.io/fluxcd/helm-controller:v0.20.1
+✔ kustomize-controller: deployment ready
+► ghcr.io/fluxcd/kustomize-controller:v0.24.4
+✔ source-controller: deployment ready
+► ghcr.io/fluxcd/source-controller:v0.24.3
+✔ all checks passed
+```
+
+Although Flux has already been installed in the cluster, we can use `flux bootstrap` to make sure the Flux Installation manifests are committed to our Git Repository, and also configure Flux in the cluster to read from and reconcile against a specific branch and path within the Git Repository.
+
+```bash
 
 flux bootstrap git \
   --url "https://github.com/${organization}/${repository}" \
@@ -121,47 +155,124 @@ flux bootstrap git \
   --token-auth \
   --password ${GITHUB_TOKEN} \
   --path "/deploy/bootstrap"
+```
 
-# pull the bootstrap files
+`flux bootstrap` will not only install or upgrade Flux within the cluster, but it will also create a commit to add the Flux installation manifests.
+
+Additionally, `flux bootstrap` will create a commit in the repository for the Sync manifests (GitRepository and Kustomization), and deploy the Flux GitRepository, Kubernetes Secret in the `flux-system` namespace for Basic Auth to the Git Repository, and a Flux Kustomization.
+
+You can pull to see the commits that Flux added to the repository on your behalf:
+
+```bash
 git pull
 
-flux create source git "${organization}-${repository}" \
-  --url "https://github.com/${organization}/${repository}" \
-  --branch $BRANCH \
-  --namespace flux-system \
-  --secret-ref flux-system
-
+git log --oneline
 ```
 
-Next, create a Flux Kustomization. The Flux Kustomization allows the Flux Kustomize Controller to know where in the
-GitRepository to find your declaratively defined desired state.
+Because we specified a `--path` of `/deploy/bootstrap`, Flux added the bootstrap manifests to the `/deploy/bootstrap` directory within your branch. `gotk-components.yaml` (GitOps ToolKit) includes the manifests that comprise the Flux runtime, and `gotk-sync.yaml` is where the GitRepository and Kustomization pair are defined.
 
-We will first create a Kustomization for the Observability components. In our Kustomizations, the `path` is defined as `/deploy/observability`; this means that Flux will
-look in the `/deploy/observability` folder in your branch within the kubernetes101/kubecon2022 repository.
+The GitRepository is a Custom Resource that the Flux Source Controller uses to determine which branch within the Git Repository to read from, and the Kustomization is a Custom Resource that the Flux Kustomize Controller uses to determine the Path within the GitRepository in which the resources are included.
 
-```bash
-
-flux create kustomization "observability" \
-    --source GitRepository/"${organization}-${repository}" \
-    --path "/deploy/observability" \
-    --namespace flux-system \
-    --prune true \
-    --interval 1m
-
+```yaml
+# gotk-sync.yaml components
+# This manifest was generated by flux. DO NOT EDIT.
+---
+apiVersion: source.toolkit.fluxcd.io/v1beta2
+kind: GitRepository
+metadata:
+  name: flux-system
+  namespace: flux-system
+spec:
+  interval: 1m0s
+  ref:
+    branch: $BRANCH # the branch that we set in `flux bootstrap git` points Flux to a specific branch within the repository
+  secretRef:
+    name: flux-system # because we did not specify a --secret-name, the default secret name was set as `flux-system`
+  url: https://github.com/kubernetes101/kubecon2022 # the url that we set in `flux bootstrap git` points Flux to the specified repository
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+kind: Kustomization
+metadata:
+  name: flux-system
+  namespace: flux-system
+spec:
+  interval: 10m0s
+  path: ./deploy/bootstrap # the path that we set in `flux bootstrap git` points Flux to the path within the source GitRepository
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system # the Kustomization's Source is the `flux-system` GitRepository defined above
 ```
 
-We will then create a Kustomization for the IMDB Application. Note that the "application" Kustomization depends on the "observability" Kustomization.
+In the `deploy/bootstrap/flux-system` folder, you will also see a `kustomization.yaml`. This is not a Flux Kustomization, but rather a Kustomize overlay (note the `kustomize.config.k8s.io` apiVersion). Kustomize is a configuration customization tool, native to Kubernetes as a of 1.14.0. A `kustomization.yaml` is not needed for directories that include plain Kubernetes resource manifests (it is created by the kustomize-controller).
+
+You can see all of the Flux resources by using the Flux CLI:
 
 ```bash
+# at this point, you should see a gitrepository/flux-system and kustomization/flux-system
+flux get all
+```
 
+### Deploy the application and observability resources for the workshop via GitOps
+
+As Flux is now configured to read from and reconcile against this GitRepository, we can create an additional Kustomization for the IMDB Application components (included in the `deploy/application` folder).
+
+```bash
+# export the application kustomization
 flux create kustomization "application" \
-    --source GitRepository/"${organization}-${repository}" \
+    --source GitRepository/flux-system \
     --path "/deploy/application" \
     --namespace flux-system \
     --prune true \
     --depends-on observability \
-    --interval 1m
+    --interval 1m \
+    --export > deploy/bootstrap/application-kustomization.yaml
+```
 
+While the `flux create` commands can directly deploy the Flux resources to the cluster, we want to adhere to GitOps Practices (where all intended changes are accomplished via Git).
+
+The above command will instead export the resulting Kustomization, and add it to the `deploy/bootstrap` directory that Flux is already monitoring. Let's add, commit, and push the update.
+
+```bash
+git add .
+
+git commit -m "Add application kustomization"
+
+git push
+```
+
+The Sync Interval of the `flux-system` GitRepository is set to 1 minute; but the `flux-system` Kustomization is set to 10 minutes. We can trigger an automatic Flux Reconciliation by using the Flux CLI:
+
+```bash
+flux reconcile source git flux-system
+
+flux reconcile kustomization flux-system
+```
+
+The reconciliation of the Kustomization should fail -- and this is because we leveraged the Flux Kustomization `dependsOn` functionality. The `application` Kustomization depends on the `observability` Kustomization, specifying `deploy/observability` as the path (where the observability components are included). Let's create the Kustomization and add, commit, and push those changes.
+
+```bash
+# export the observability kustomization
+flux create kustomization "observability" \
+    --source GitRepository/flux-system \
+    --path "/deploy/observability" \
+    --namespace flux-system \
+    --prune true \
+    --interval 1m \
+    --export > deploy/bootstrap/observability-kustomization.yaml
+
+# add, commit, and push the update to git
+git add .
+git commit -m "Add observability kustomization"
+git push
+```
+
+We can similarly trigger an automatic reconciliation following succesful push to your branch:
+
+```bash
+flux reconcile source git flux-system
+
+flux reconcile kustomization flux-system
 ```
 
 ### Validating endpoints
