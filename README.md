@@ -18,16 +18,6 @@ We use this Codespaces platform for `inner-loop` Kubernetes training and develop
 
 ## Open with Codespaces
 
-- For this workshop, you will need to create a branch within this repository. We recommend using your GitHub Username.
-
-```bash
-export BRANCH=$YOUR_GITHUB_USERNAME
-git checkout -b $BRANCH
-
-git push --set-upstream origin $BRANCH
-```
-
-- Select your branch in this repository
 - Click the `Code` button on this repo
 - Click the `Codespaces` tab
 - Click `Create codespace on main`
@@ -116,18 +106,25 @@ To get started using Kubernetes, we will be manually deploying our IMDB applicat
 
 ## GitOps with Flux
 
-> Before moving on, please ensure that you have opened a Codespace for your specific branch
+> Before moving on, you will need to create a branch within this repository.
 
 ```bash
-echo $BRANCH
+export BRANCH=`git config user.name | sed 's/ //g'`$RANDOM
 
-git branch
+git checkout -b $BRANCH
+
+git push --set-upstream origin $BRANCH
+
+# and let's also cd into the base directory of this repository
+cd /workspaces/kubecon2022
+
 ```
 
 Flux has been installed into the k3d cluster, and the Flux CLI is included in the workshop codespaces.
 You can run a check using the Flux CLI to verify that Flux has successfully been installed. You should see the following output:
 
 ```bash
+# flux check will verify that the flux runtime components are successfully installed
 $ flux check
 
 ► checking prerequisites
@@ -145,10 +142,9 @@ $ flux check
 ✔ all checks passed
 ```
 
-Although Flux has already been installed in the cluster, we can use `flux bootstrap` to make sure the Flux Installation manifests are committed to our Git Repository, and also configure Flux in the cluster to read from and reconcile against a specific branch and path within the Git Repository.
+Although Flux has already been installed in the cluster, we can use `flux bootstrap git` to make sure the Flux Installation manifests are committed to our Git Repository, and also configure Flux in the cluster to read from and reconcile against a specific branch and path within the Git Repository.
 
 ```bash
-
 flux bootstrap git \
   --url "https://github.com/${organization}/${repository}" \
   --branch $BRANCH \
@@ -157,9 +153,9 @@ flux bootstrap git \
   --path "/deploy/bootstrap"
 ```
 
-`flux bootstrap` will not only install or upgrade Flux within the cluster, but it will also create a commit to add the Flux installation manifests.
+`flux bootstrap git` will not only install or upgrade Flux within the cluster, but it will also create a commit to add the Flux installation manifests.
 
-Additionally, `flux bootstrap` will create a commit in the repository for the Sync manifests (GitRepository and Kustomization), and deploy the Flux GitRepository, Kubernetes Secret in the `flux-system` namespace for Basic Auth to the Git Repository, and a Flux Kustomization.
+Additionally, `flux bootstrap git` will create a commit in the repository for the Sync manifests (GitRepository and Kustomization), and deploy the Flux GitRepository, Kubernetes Secret in the `flux-system` namespace for Basic Auth to the Git Repository, and a Flux Kustomization.
 
 You can pull to see the commits that Flux added to the repository on your behalf:
 
@@ -169,9 +165,9 @@ git pull
 git log --oneline
 ```
 
-Because we specified a `--path` of `/deploy/bootstrap`, Flux added the bootstrap manifests to the `/deploy/bootstrap` directory within your branch. `gotk-components.yaml` (GitOps ToolKit) includes the manifests that comprise the Flux runtime, and `gotk-sync.yaml` is where the GitRepository and Kustomization pair are defined.
+Because we specified a `--path` of `/deploy/bootstrap`, Flux added the bootstrap manifests to the `/deploy/bootstrap` directory within your branch. The `gotk-components.yaml` (GitOps ToolKit) includes the manifests that comprise the Flux runtime, and the `gotk-sync.yaml` is where the GitRepository and Kustomization pair are defined.
 
-The GitRepository is a Custom Resource that the Flux Source Controller uses to determine which branch within the Git Repository to read from, and the Kustomization is a Custom Resource that the Flux Kustomize Controller uses to determine the Path within the GitRepository in which the resources are included.
+The GitRepository is a Custom Resource that the Flux Source-Controller uses to determine which branch within the Git Repository to read from, and the Kustomization is a Custom Resource that the Flux Kustomize-Controller uses to determine the Path within the GitRepository in which the resources are included.
 
 ```yaml
 # gotk-sync.yaml components
@@ -273,13 +269,57 @@ git commit -m "Add observability kustomization"
 git push
 ```
 
-We can trigger another automatic reconciliation following successful push to your branch, and check the :
+We can trigger another automatic reconciliation following successful push to your branch, and check the kustomizations:
 
 ```bash
 # you can specify a reconciliation of a flux resource and its corresponding source by passing --with-source
 flux reconcile kustomization flux-system --with-source
 
+# check the kustomizations; the observability kustomization should be in ready state
+$ flux get kustomization
+
+NAME            REVISION                SUSPENDED       READY   MESSAGE
+application                             False           False   unable to get 'flux-system/observability' dependency: Kustomization.kustomize.toolkit.fluxcd.io "observability" not found
+observability   $BRANCH/$COMMIT_HASH   False           True    Applied revision: $BRANCH/$COMMIT_HASH
+flux-system     $BRANCH/$COMMIT_HASH   False           True    Applied revision: $BRANCH/$COMMIT_HASH
+
+# after the 1 minute sync interval we defined in the application kustomization, the application kustomization should also report as ready -- or if you are feeling impatient, you can trigger a reconciliation on the application kustomization!
+$ flux get kustomization
+NAME            REVISION                SUSPENDED       READY   MESSAGE
+observability   $BRANCH/$COMMIT_HASH   False           True    Applied revision: $BRANCH/$COMMIT_HASH
+flux-system     $BRANCH/$COMMIT_HASH   False           True    Applied revision: $BRANCH/$COMMIT_HASH
+application     $BRANCH/$COMMIT_HASH   False           True    Applied revision: $BRANCH/$COMMIT_HASH
+
 ```
+
+### Verify successful deployment of the observability and application components via GitOps/Flux
+
+With the `observability` and `application` Kustomizations are reporting as `Ready`, this means that Flux has successfully reconciled the contents of the `deploy/observability` and `deploy/application` directories.
+
+You can verify by running the following (the below includes sample expected output):
+
+```bash
+$ kubectl get pods -n logging
+NAME                        READY   STATUS    RESTARTS   AGE
+fluentbit-69c698599-wgrzs   1/1     Running   0          4m53s
+
+$ kubectl get pods -n monitoring
+NAME                                     READY   STATUS    RESTARTS   AGE
+grafana-796d69d8d4-26hbv                 1/1     Running   0          4m58s
+prometheus-deployment-6f9f58df45-cqmxn   1/1     Running   0          4m58s
+
+$ kubectl get pods -n heartbeat
+NAME                             READY   STATUS    RESTARTS   AGE
+heartbeat-76749998c7-r26v6       1/1     Running   0          5m2s
+webv-heartbeat-787fcfbff-4hxfm   1/1     Running   0          5m2s
+
+$ kubectl get pods -n imdb
+NAME                    READY   STATUS    RESTARTS   AGE
+webv-6b7864b96f-5nx7z   1/1     Running   0          4m50s
+imdb-57d85d9bd-ck9vf    1/1     Running   0          4m50s
+```
+
+You have now deployed the observability and application components via GitOps/Flux.
 
 ### Validating endpoints
 
@@ -482,6 +522,7 @@ kic test integration
 - Why don't we use helm to deploy Kubernetes manifests?
   - The target audience for this repository is app developers so we chose simplicity for the Developer Experience.
   - In our daily work, we use Helm for deployments and it is installed in the `Codespace` should you want to use it.
+  - Flux also includes a helm-controller that allows you to declaratively use Helm in a GitOps workflow
 - Why `k3d` instead of `Kind`?
   - We love kind! Most of our code will run unchanged in kind (except the cluster commands)
   - We had to choose one or the other as we don't have the resources to validate both
