@@ -247,9 +247,15 @@ The Sync Interval of the `flux-system` GitRepository is set to 1 minute; but the
 flux reconcile source git flux-system
 
 flux reconcile kustomization flux-system
+
+# upon successful reconciliation of the flux-system kustomization, let's check the status of the flux kustomizations. The application kustomization will have failed:
+$ flux get kustomization
+NAME            REVISION                SUSPENDED       READY   MESSAGE
+application                             False           False   unable to get 'flux-system/observability' dependency: Kustomization.kustomize.toolkit.fluxcd.io "observability" not found
+flux-system     $BRANCH/$COMMIT_HASH  False           True    Applied revision: $BRANCH/$COMMIT_HASH
 ```
 
-The reconciliation of the Kustomization should fail -- and this is because we leveraged the Flux Kustomization `dependsOn` functionality. The `application` Kustomization depends on the `observability` Kustomization, specifying `deploy/observability` as the path (where the observability components are included). Let's create the Kustomization and add, commit, and push those changes.
+The failure is actually an indication of success in this case; this is because we leveraged the Flux Kustomization `dependsOn` functionality. The `application` Kustomization depends on the `observability` Kustomization. Let's create the `observability` Kustomization and add, commit, and push those changes.
 
 ```bash
 # export the observability kustomization
@@ -267,12 +273,12 @@ git commit -m "Add observability kustomization"
 git push
 ```
 
-We can similarly trigger an automatic reconciliation following succesful push to your branch:
+We can trigger another automatic reconciliation following successful push to your branch, and check the :
 
 ```bash
-flux reconcile source git flux-system
+# you can specify a reconciliation of a flux resource and its corresponding source by passing --with-source
+flux reconcile kustomization flux-system --with-source
 
-flux reconcile kustomization flux-system
 ```
 
 ### Validating endpoints
