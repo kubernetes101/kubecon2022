@@ -34,14 +34,8 @@ We use this Codespaces platform for `inner-loop` Kubernetes training and develop
 
   ```bash
 
-  # check the namespaces
-  kubectl get ns
-
-  # check the services
-  kubectl get services -A
-
-  # check the pods
-  kubectl get pods -A
+  # check all the resources
+  kubectl get all -A
 
   ```
 
@@ -57,6 +51,40 @@ We use this Codespaces platform for `inner-loop` Kubernetes training and develop
   kube-system   helm-install-traefik-mbr2l                0/1     Completed           1          48s
   kube-system   svclb-traefik-2ks5t                       2/2     Running             0          22s
   kube-system   traefik-97b44b794-txs9h                   1/1     Running             0          22s
+
+  ```
+
+## NodePorts
+
+- Codespaces exposes `ports` to the local browser
+- We take advantage of this by exposing `NodePort` on most of our K8s services
+- Codespaces ports are setup in the `.devcontainer/devcontainer.json` file
+
+- Exposing the ports
+
+  ```json
+
+  // forward ports for the app
+  "forwardPorts": [
+    30000,
+    30080,
+    31080,
+    32000
+  ],
+
+  ```
+
+- Adding labels to the ports
+
+  ```json
+
+  // add labels
+  "portsAttributes": {
+    "30000": { "label": "Prometheus" },
+    "30080": { "label": "IMDb-app" },
+    "31080": { "label": "Heartbeat" },
+    "32000": { "label": "Grafana" },
+  },
 
   ```
 
@@ -92,15 +120,42 @@ To get started using Kubernetes, we will be manually deploying our IMDB applicat
 
   # query our application's endpoint
   http localhost:30080/healthz
+  ```
 
-  # delete our deployments
+Open [curl.http](./curl.http)
+
+> [curl.http](./curl.http) is used in conjuction with the Visual Studio Code [REST Client](https://marketplace.visualstudio.com/items?itemName=humao.rest-client) extension.
+>
+> When you open [curl.http](./curl.http), you should see a clickable `Send Request` text above each of the URLs
+
+![REST Client example](./images/RESTClient.png)
+
+Clicking on `Send Request` should open a new panel in Visual Studio Code with the response from that request like so:
+
+![REST Client example response](./images/RESTClientResponse.png)
+
+## View IMDB App Swagger Docs
+
+- Click on the `ports` tab of the terminal window
+- Click on the `open in browser icon` on the IMDb-App port (30080)
+- This will open the imdb-app home page (Swagger) in a new browser tab
+
+## Delete our IMDB Resources
+
+```bash
   kubectl delete service imdb -n imdb
 
-  kubectl delete pod <pod name> imdb -n imdb # notice what happens when a pod gets deleted
+  kubectl get pods -n imdb
 
-  kubectl delete deploy -n imdb
+  kubectl delete pod <pod name> -n imdb # notice what happens after a pod gets deleted
 
-  kubectl delete ns imdb # this will not only remove the namespace, but all of the resources associated to it
+  kubectl get pods -n imdb
+
+  kubectl delete deploy imdb -n imdb
+
+  kubectl get pods -n imdb
+
+  kubectl delete ns imdb # this will remove the namespace and all of it's resources
 
   ```
 
@@ -321,68 +376,6 @@ imdb-57d85d9bd-ck9vf    1/1     Running   0          4m50s
 
 You have now deployed the observability and application components via GitOps/Flux.
 
-### Validating endpoints
-
-Open [curl.http](./curl.http)
-
-> [curl.http](./curl.http) is used in conjuction with the Visual Studio Code [REST Client](https://marketplace.visualstudio.com/items?itemName=humao.rest-client) extension.
->
-> When you open [curl.http](./curl.http), you should see a clickable `Send Request` text above each of the URLs
-
-![REST Client example](./images/RESTClient.png)
-
-Clicking on `Send Request` should open a new panel in Visual Studio Code with the response from that request like so:
-
-![REST Client example response](./images/RESTClientResponse.png)
-
-## NodePorts
-
-- Codespaces exposes `ports` to the local browser
-- We take advantage of this by exposing `NodePort` on most of our K8s services
-- Codespaces ports are setup in the `.devcontainer/devcontainer.json` file
-
-- Exposing the ports
-
-  ```json
-
-  // forward ports for the app
-  "forwardPorts": [
-    30000,
-    30080,
-    31080,
-    32000
-  ],
-
-  ```
-
-- Adding labels to the ports
-
-  ```json
-
-  // add labels
-  "portsAttributes": {
-    "30000": { "label": "Prometheus" },
-    "30080": { "label": "IMDb-app" },
-    "31080": { "label": "Heartbeat" },
-    "32000": { "label": "Grafana" },
-  },
-
-  ```
-
-## View IMDB App
-
-- Click on the `ports` tab of the terminal window
-- Click on the `open in browser icon` on the IMDb-App port (30080)
-- This will open the imdb-app home page (Swagger) in a new browser tab
-
-## View Heartbeat
-
-- Click on the `ports` tab of the terminal window
-- Click on the `open in browser icon` on the Heartbeat port (31080)
-- This will open the heartbeat home page (Swagger) in a new browser tab
-  - Note that you will see page `Under construction ...` as heartbeat does not have a UI
-  - Add `version` or `/heartbeat/17` to the end of the URL in the browser tab
-
 ## Validate deployment with k9s
 
 > To exit K9s - `:q <enter>`
@@ -399,18 +392,6 @@ Clicking on `Send Request` should open a new panel in Visual Studio Code with th
     - Notice that WebV is making 10 IMDb requests per second
     - To go back, press the `esc` key
 
-  - Use the arrow key to select `jumpbox` then press `s` key to open a shell in the container
-    - Test the `IMDb-App` service from within the cluster by executing
-
-      ```bash
-
-      # httpie is a "pretty" version of curl
-      # test the webv-imdb service endpoint using local DNS
-      http webv.imdb.svc.cluster.local:8080/metrics
-
-      ```
-
-      - `exit <enter>`
   - To view other resources - press `shift + :` followed by the deployment type (e.g. `secret`, `services`, `deployment`, etc).
 
 ![k9s](./images/k9s.png)
