@@ -17,6 +17,7 @@ mkdir -p "$HOME/.oh-my-zsh/completions"
 
     echo "export REPO_BASE=$REPO_BASE"
     echo "compinit"
+    echo "export AKDC_WEBV=true"
 } >> "$HOME/.zshrc"
 
 # make sure everything is up to date
