@@ -10,7 +10,7 @@ We use this Codespaces platform for `inner-loop` Kubernetes training and develop
 
 ## Join the Kubernetes101 GitHub Org
 
-> You must be a member of the Kubernetes101 GitHub organization
+> 🛑  Important: You must be a member of the Kubernetes101 GitHub organization
 
 - If you can't open a Codespace in this repo, you need to join the GitHub org(s)
   - Join the org by going [here](https://kube101.dev/)
@@ -90,14 +90,14 @@ We use this Codespaces platform for `inner-loop` Kubernetes training and develop
 
 ## Introduction to Kuberenetes
 
-To get started using Kubernetes, we will be manually deploying our IMDB application. This REST application written in .NET allows us to run an in-memory database that accepts several movie and actor queries.
+To get started using Kubernetes, we will be manually deploying our IMDb application. This REST application written in .NET has been containerized and allows us to run an in-memory database that accepts different types of requests.
 
   ```bash
 
-  # navigate to the folder containing all our imdb application manifests
+  # navigate to the folder containing all our IMDb application manifests
   cd workshop-manifests/imdb
 
-  # create the namespace that will contain all of our imdb application
+  # create the namespace that will contain all of our IMDb application
   kubectl apply -f 01-namespace.yaml #(this also be accomplished by running `kubectl create ns imdb`)
 
   # check that imdb namespace was created
@@ -134,13 +134,13 @@ Clicking on `Send Request` should open a new panel in Visual Studio Code with th
 
 ![REST Client example response](./images/RESTClientResponse.png)
 
-## View IMDB App Swagger Docs
+## View IMDb App Swagger Docs
 
 - Click on the `ports` tab of the terminal window
 - Click on the `open in browser icon` on the IMDb-App port (30080)
 - This will open the imdb-app home page (Swagger) in a new browser tab
 
-## Delete our IMDB Resources
+## Delete our IMDb Resources
 
 ```bash
   kubectl delete service imdb -n imdb
@@ -151,9 +151,9 @@ Clicking on `Send Request` should open a new panel in Visual Studio Code with th
 
   kubectl get pods -n imdb
 
-  kubectl delete deploy imdb -n imdb
+  kubectl delete -f 02-deploy.yaml # this is deleting using the resource definition , alteratively you can also run: kubectl delete deploy imdb -n imdb
 
-  kubectl get pods -n imdb
+  kubectl get pods -n imdb # check that the imdb pods are gone
 
   kubectl delete ns imdb # this will remove the namespace and all of it's resources
 
