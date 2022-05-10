@@ -18,7 +18,6 @@ mkdir -p "$HOME/.oh-my-zsh/completions"
     echo "export REPO_BASE=$REPO_BASE"
     echo "export AKDC_WEBV=ghcr.io/kubernetes101/webv-red:latest"
     echo "compinit"
-
 } >> "$HOME/.zshrc"
 
 # make sure everything is up to date
