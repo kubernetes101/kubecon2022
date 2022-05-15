@@ -155,7 +155,7 @@ Clicking on `Send Request` should open a new panel in Visual Studio Code with th
 
   kubectl get pods -n imdb # check that the imdb pods are gone
 
-  kubectl delete ns imdb # this will remove the namespace and all of it's resources
+  kubectl delete ns imdb # this will remove the namespace and all of its resources
 
   ```
 
@@ -375,6 +375,55 @@ imdb-57d85d9bd-ck9vf    1/1     Running   0          4m50s
 ```
 
 You have now deployed the observability and application components via GitOps/Flux.
+
+### Flux detects drift between desired state (git) and the running cluster
+
+We saw that if you deleted a Pod, Kubernetes would make sure that another one came up, according to the Deployment spec.
+
+We also saw that if you deleted the Deployment, the workloads would not come back.
+
+However, now that we have declaratively defined our desired state in Git, Flux will ensure that the running cluster is kept in sync with what is defined in git.
+
+Let's delete the IMDB Deployment and watch Flux reconcile desired and current state:
+
+```bash
+
+kubectl delete deployment -n imdb imdb
+
+# after approximately one minute, Flux will re-deploy the imdb deployment on your behalf
+kubectl get deployment -n imdb --watch
+
+# verify that the pods came back up
+kubectl get pods -n imdb
+
+```
+
+Flux also detects drift within the resources that you have defined in Git:
+
+```bash
+# let's verify that the IMDB Deployment replicas is set to 1, as defined in Git:
+kubectl describe deployment -n imdb imdb | grep "Replicas:" -B 2 -A 2
+
+# you can specify the editor you'd like to use for editing kubernetes resources. We can set our editor to VS Code by exporting the following:
+export KUBE_EDITOR="code --wait"
+
+# edit the spec.replicas to 2 and close the file. As long as the syntax is valid, your updates will be applied immediately:
+kubectl edit deployment -n imdb imdb
+
+# the replica count should have been updated to 2:
+kubectl describe deployment -n imdb imdb | grep "Replicas:" -B 2 -A 2
+
+# there might be a minute or two where the you might have 2 pods running. Once the Flux Application Kustomization syncs, the deployment will return to 1, removing the additional pod.
+kubectl get pods -n imdb --watch
+
+#let's check the deployment to see that the replicas field was reverted back to 1
+kubectl describe deployment -n imdb imdb | grep "Replicas:" -B 2 -A 2
+
+# we should now only have one imdb pod running in the imdb namespace
+kubectl get pods -n imdb 
+```
+
+Now that Flux has ensured our running cluster state aligns with what we've defined in Git, we're ready to move onto the Observability portion of the workshop.
 
 ## Validate deployment with k9s
 
