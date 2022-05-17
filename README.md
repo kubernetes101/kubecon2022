@@ -126,7 +126,7 @@ To get started using Kubernetes, we will manually deploy our IMDb application. T
 
   # Today we will be using a NodePort to expose the service on the node's ip static port.
 
-  # ClusterIP exposes on a clusteriinternal IP. Service only reachable within the cluster
+  # ClusterIP exposes on a cluster internal IP. Service only reachable within the cluster
 
   # LoadBalancer: exposes the service externally using a cloud provider's load balancer.
 
