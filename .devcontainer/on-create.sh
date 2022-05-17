@@ -5,6 +5,9 @@
 echo "on-create start"
 echo "$(date +'%Y-%m-%d %H:%M:%S')    on-create start" >> "$HOME/status"
 
+# Change shell to zsh for vscode
+sudo chsh --shell /bin/zsh vscode
+
 export REPO_BASE=$PWD
 export PATH="$PATH:$REPO_BASE/bin"
 
