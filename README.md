@@ -4,7 +4,7 @@
 
 ## Overview
 
-This tutorial offers newcomers a quick way to experience Kubernetes and its natural evolutionary developments: GitOps and Observability. Attendees will be able to use and experience the benefits of Kubernetes that impact reliability, velocity, security, and more. The session will cover key concepts and practices, as well as offer attendees a way to experience the commands in real-time.
+Welcome! This tutorial offers newcomers a quick way to experience Kubernetes and its natural evolutionary developments: GitOps and Observability. Attendees will be able to use and experience the benefits of Kubernetes that impact reliability, velocity, security, and more. The session will cover key concepts and practices, as well as offer attendees a way to experience the commands in real-time.
 
 We use this Codespaces platform for `inner-loop` Kubernetes training and development. Note that it is not appropriate for production use but is a great `Developer Experience`. Feedback calls the approach `game-changing` - we hope you agree!
 
@@ -12,8 +12,9 @@ We use this Codespaces platform for `inner-loop` Kubernetes training and develop
 
 > 🛑  Important: You must be a member of the Kubernetes101 GitHub organization
 
-- If you can't open a Codespace in this repo, you need to join the GitHub org(s)
+- If you can't open a Codespace in this repo, you will need need to join the GitHub org
   - Join the org by going [here](https://kube101.dev/)
+  - Username and Password will be provided during the live session
 - Return to this repo after joining the org
 
 ## Open with Codespaces
@@ -31,6 +32,8 @@ We use this Codespaces platform for `inner-loop` Kubernetes training and develop
 ## Checking the k3d Cluster
 
 - A k3d cluster is automatically created as part of the Codespace setup
+
+- k3d is a lightweight, single node, kubernetes cluster. It is essentially a wrapper for k3s and runs as a docker container. We will be using this cluster throughout the session.
 
   ```bash
 
@@ -90,18 +93,22 @@ We use this Codespaces platform for `inner-loop` Kubernetes training and develop
 
 ## Introduction to Kuberenetes
 
-To get started using Kubernetes, we will be manually deploying our IMDb application. This REST application written in .NET has been containerized and allows us to run an in-memory database that accepts different types of requests.
+To get started using Kubernetes, we will manually deploy our IMDb application. This REST application written in .NET has been containerized and allows us to run an in-memory database that accepts different types of requests.
 
   ```bash
 
   # navigate to the folder containing all our IMDb application manifests
   cd workshop-manifests/imdb
 
+  # In kubernetes, namespaces provides a mechanism for isolating groups of resources within a single cluster. Names of resources need to be unique within a namespace, but not across namespaces
+
   # create the namespace that will contain all of our IMDb application
   kubectl apply -f 01-namespace.yaml #(this also be accomplished by running `kubectl create ns imdb`)
 
   # check that imdb namespace was created
   kubectl get ns
+
+  # A Deployment provides declarative updates for Pods and ReplicaSets. You describe a desired state in a Deployment, and the Deployment Controller changes the actual state to the desired state at a controlled rate.
 
   # apply our deployment yaml
   kubectl apply -f 02-deploy.yaml
@@ -114,6 +121,14 @@ To get started using Kubernetes, we will be manually deploying our IMDb applicat
 
   # query our application's endpoint (this is expected to fail)
   http localhost:30080/healthz
+
+  # A service is an abstract way to expose an application running on a set of Pods as a network service.
+
+  # Today we will be using a NodePort to expose the service on the node's ip static port.
+
+  # ClusterIP exposes on a cluster internal IP. Service only reachable within the cluster
+
+  # LoadBalancer: exposes the service externally using a cloud provider's load balancer.
 
   # apply our service yaml
   kubectl apply -f 03-service.yaml
@@ -404,7 +419,7 @@ Flux also detects drift within the resources that you have defined in Git:
 # let's verify that the IMDB Deployment replicas is set to 1, as defined in Git:
 kubectl describe deployment -n imdb imdb | grep "Replicas:" -B 2 -A 2
 
-# you can specify the editor you'd like to use for editing kubernetes resources. We can set our editor to VS Code by exporting the following:
+# you can specify the editor you'd like to use for editing Kubernetes resources. We can set our editor to VS Code by exporting the following:
 export KUBE_EDITOR="code --wait"
 
 # edit the spec.replicas to 2 and close the file. As long as the syntax is valid, your updates will be applied immediately:
@@ -420,12 +435,12 @@ kubectl get pods -n imdb --watch
 kubectl describe deployment -n imdb imdb | grep "Replicas:" -B 2 -A 2
 
 # we should now only have one imdb pod running in the imdb namespace
-kubectl get pods -n imdb 
+kubectl get pods -n imdb
 ```
 
 Now that Flux has ensured our running cluster state aligns with what we've defined in Git, we're ready to move onto the Observability portion of the workshop.
 
-## Validate deployment with k9s
+## Validate deployments with k9s
 
 > To exit K9s - `:q <enter>`
 
@@ -447,6 +462,8 @@ Now that Flux has ensured our running cluster state aligns with what we've defin
 
 ## View Fluent Bit Logs
 
+Fluent Bit is a log processor and forwarder that allows you to collect log events from different sources and deliver them to different backends
+
 > Fluent Bit is set to forward logs to stdout for debugging
 >
 > Fluent Bit can be configured to forward to different services including Grafana Cloud or Azure Log Analytics
@@ -463,6 +480,8 @@ Now that Flux has ensured our running cluster state aligns with what we've defin
 
 ## View Prometheus Dashboard
 
+Prometheus is a metrics collection and alerting tool. It records real time metrics in a time series database and is built using an HTTP pull model.
+
 - Click on the `ports` tab of the terminal window
 - Click on the `open in browser icon` on the Prometheus port (30000)
 - This will open Prometheus in a new browser tab
@@ -473,6 +492,8 @@ Now that Flux has ensured our running cluster state aligns with what we've defin
   - This will display the log table that Grafana uses for the charts
 
 ## View Grafana Dashboard
+
+Grafana is an open source observability platform that allows you to visualize metrics, logs and traces from your applications.
 
 - Grafana login info
   - admin
