@@ -462,7 +462,7 @@ Now that Flux has ensured our running cluster state aligns with what we've defin
 
 ## View Fluent Bit Logs
 
-Fluent bit is a log processor and forwarder that allows   to collect log events from different sources and deliver them to differnt backends
+Fluent Bit is a log processor and forwarder that allows you to collect log events from different sources and deliver them to different backends
 
 > Fluent Bit is set to forward logs to stdout for debugging
 >
@@ -493,7 +493,7 @@ Prometheus is a metrics collection and alerting tool. It records real time metri
 
 ## View Grafana Dashboard
 
-Is an open source observability platform that allows you to visualize metrics, logs and traces from your application
+Grafana is an open source observability platform that allows you to visualize metrics, logs and traces from your applications.
 
 - Grafana login info
   - admin
