@@ -35,27 +35,23 @@ We use this Codespaces platform for `inner-loop` Kubernetes training and develop
 
 - k3d is a lightweight, single node, kubernetes cluster. It is essentially a wrapper for k3s and runs as a docker container. We will be using this cluster throughout the session.
 
-  ```bash
-
-  # check all the resources
-  kubectl get all -A
-
-  ```
+```bash
+# check all the resources
+kubectl get all -A
+```
 
 - Output from `kubectl get pods -A` should resemble this
 
-  ```text
-
-  NAMESPACE     NAME                                      READY   STATUS              RESTARTS   AGE
-  kube-system   metrics-server-86cbb8457f-qlp8v           1/1     Running             0          48s
-  kube-system   local-path-provisioner-5ff76fc89d-wfpjx   1/1     Running             0          48s
-  kube-system   coredns-7448499f4d-dnjzl                  1/1     Running             0          48s
-  kube-system   helm-install-traefik-crd-zk5gr            0/1     Completed           0          48s
-  kube-system   helm-install-traefik-mbr2l                0/1     Completed           1          48s
-  kube-system   svclb-traefik-2ks5t                       2/2     Running             0          22s
-  kube-system   traefik-97b44b794-txs9h                   1/1     Running             0          22s
-
-  ```
+```text
+NAMESPACE     NAME                                      READY   STATUS              RESTARTS   AGE
+kube-system   metrics-server-86cbb8457f-qlp8v           1/1     Running             0          48s
+kube-system   local-path-provisioner-5ff76fc89d-wfpjx   1/1     Running             0          48s
+kube-system   coredns-7448499f4d-dnjzl                  1/1     Running             0          48s
+kube-system   helm-install-traefik-crd-zk5gr            0/1     Completed           0          48s
+kube-system   helm-install-traefik-mbr2l                0/1     Completed           1          48s
+kube-system   svclb-traefik-2ks5t                       2/2     Running             0          22s
+kube-system   traefik-97b44b794-txs9h                   1/1     Running             0          22s
+```
 
 ## NodePorts
 
@@ -65,81 +61,76 @@ We use this Codespaces platform for `inner-loop` Kubernetes training and develop
 
 - Exposing the ports
 
-  ```json
-
-  // forward ports for the app
-  "forwardPorts": [
-    30000,
-    30080,
-    31080,
-    32000
-  ],
-
-  ```
+```json
+// forward ports for the app
+"forwardPorts": [
+  30000,
+  30080,
+  31080,
+  32000
+],
+```
 
 - Adding labels to the ports
 
-  ```json
+```json
+// add labels
+"portsAttributes": {
+  "30000": { "label": "Prometheus" },
+  "30080": { "label": "IMDb-app" },
+  "31080": { "label": "Heartbeat" },
+  "32000": { "label": "Grafana" },
+},
+```
 
-  // add labels
-  "portsAttributes": {
-    "30000": { "label": "Prometheus" },
-    "30080": { "label": "IMDb-app" },
-    "31080": { "label": "Heartbeat" },
-    "32000": { "label": "Grafana" },
-  },
-
-  ```
-
-## Introduction to Kuberenetes
+## Introduction to Kubernetes
 
 To get started using Kubernetes, we will manually deploy our IMDb application. This REST application written in .NET has been containerized and allows us to run an in-memory database that accepts different types of requests.
 
-  ```bash
+```bash
+# navigate to the folder containing all our IMDb application manifests
+cd workshop-manifests/imdb
 
-  # navigate to the folder containing all our IMDb application manifests
-  cd workshop-manifests/imdb
+# In kubernetes, namespaces provides a mechanism for isolating groups of resources within a single cluster. Names of resources need to be unique within a namespace, but not across namespaces
 
-  # In kubernetes, namespaces provides a mechanism for isolating groups of resources within a single cluster. Names of resources need to be unique within a namespace, but not across namespaces
+# create the namespace that will contain all of our IMDb application
+kubectl apply -f 01-namespace.yaml #(this also be accomplished by running `kubectl create ns imdb`)
 
-  # create the namespace that will contain all of our IMDb application
-  kubectl apply -f 01-namespace.yaml #(this also be accomplished by running `kubectl create ns imdb`)
+# check that imdb namespace was created
+kubectl get ns
 
-  # check that imdb namespace was created
-  kubectl get ns
+# A Deployment provides declarative updates for Pods and ReplicaSets. You describe a desired state in a Deployment, and the Deployment Controller changes the actual state to the desired state at a controlled rate.
 
-  # A Deployment provides declarative updates for Pods and ReplicaSets. You describe a desired state in a Deployment, and the Deployment Controller changes the actual state to the desired state at a controlled rate.
+# apply our deployment yaml
+kubectl apply -f 02-deploy.yaml
 
-  # apply our deployment yaml
-  kubectl apply -f 02-deploy.yaml
+# verify that our pods were created
+kubectl get pods -n imdb
 
-  # verify that our pods were created
-  kubectl get pods -n imdb
+# check application logs
+kubectl logs <pod name from above> -n imdb
 
-  # check application logs
-  kubectl logs <pod name from above> -n imdb
+# query our application's endpoint (this is expected to fail)
+http localhost:30080/healthz
 
-  # query our application's endpoint (this is expected to fail)
-  http localhost:30080/healthz
+# A service is an abstract way to expose an application running on a set of Pods as a network service.
 
-  # A service is an abstract way to expose an application running on a set of Pods as a network service.
+# Today we will be using a NodePort to expose the service on the node's ip static port.
 
-  # Today we will be using a NodePort to expose the service on the node's ip static port.
+# ClusterIP exposes on a cluster internal IP. Service only reachable within the cluster
 
-  # ClusterIP exposes on a cluster internal IP. Service only reachable within the cluster
+# LoadBalancer: exposes the service externally using a cloud provider's load balancer.
 
-  # LoadBalancer: exposes the service externally using a cloud provider's load balancer.
+# apply our service yaml
+kubectl apply -f 03-service.yaml
 
-  # apply our service yaml
-  kubectl apply -f 03-service.yaml
-
-  # query our application's endpoint
-  http localhost:30080/healthz
-  ```
+# query our application's endpoint
+http localhost:30080/healthz
+```
 
 Open [curl.http](./curl.http)
 
-> [curl.http](./curl.http) is used in conjuction with the Visual Studio Code [REST Client](https://marketplace.visualstudio.com/items?itemName=humao.rest-client) extension.
+> [curl.http](./curl.http) is used in conjunction with the Visual Studio Code [REST Client](https://marketplace.visualstudio.com/items?itemName=humao.rest-client) extension.
 >
 > When you open [curl.http](./curl.http), you should see a clickable `Send Request` text above each of the URLs
 
@@ -158,21 +149,20 @@ Clicking on `Send Request` should open a new panel in Visual Studio Code with th
 ## Delete our IMDb Resources
 
 ```bash
-  kubectl delete service imdb -n imdb
+kubectl delete service imdb -n imdb
 
-  kubectl get pods -n imdb
+kubectl get pods -n imdb
 
-  kubectl delete pod <pod name> -n imdb # notice what happens after a pod gets deleted
+kubectl delete pod <pod name> -n imdb # notice what happens after a pod gets deleted
 
-  kubectl get pods -n imdb
+kubectl get pods -n imdb
 
-  kubectl delete -f 02-deploy.yaml # this is deleting using the resource definition , alteratively you can also run: kubectl delete deploy imdb -n imdb
+kubectl delete -f 02-deploy.yaml # this is deleting using the resource definition , alteratively you can also run: kubectl delete deploy imdb -n imdb
 
-  kubectl get pods -n imdb # check that the imdb pods are gone
+kubectl get pods -n imdb # check that the imdb pods are gone
 
-  kubectl delete ns imdb # this will remove the namespace and all of its resources
-
-  ```
+kubectl delete ns imdb # this will remove the namespace and all of its resources
+```
 
 ## GitOps with Flux
 
@@ -187,7 +177,6 @@ git push --set-upstream origin $BRANCH
 
 # and let's also cd into the base directory of this repository
 cd /workspaces/kubecon2022
-
 ```
 
 Flux has been installed into the k3d cluster, and the Flux CLI is included in the workshop codespaces.
@@ -359,7 +348,6 @@ NAME            REVISION                SUSPENDED       READY   MESSAGE
 observability   $BRANCH/$COMMIT_HASH   False           True    Applied revision: $BRANCH/$COMMIT_HASH
 flux-system     $BRANCH/$COMMIT_HASH   False           True    Applied revision: $BRANCH/$COMMIT_HASH
 application     $BRANCH/$COMMIT_HASH   False           True    Applied revision: $BRANCH/$COMMIT_HASH
-
 ```
 
 ### Verify successful deployment of the observability and application components via GitOps/Flux
@@ -402,7 +390,6 @@ However, now that we have declaratively defined our desired state in Git, Flux w
 Let's delete the IMDB Deployment and watch Flux reconcile desired and current state:
 
 ```bash
-
 kubectl delete deployment -n imdb imdb
 
 # after approximately one minute, Flux will re-deploy the imdb deployment on your behalf
@@ -410,7 +397,6 @@ kubectl get deployment -n imdb --watch
 
 # verify that the pods came back up
 kubectl get pods -n imdb
-
 ```
 
 Flux also detects drift within the resources that you have defined in Git:
@@ -520,7 +506,6 @@ Grafana is an open source observability platform that allows you to visualize me
 ## Run integration and load tests
 
 ```bash
-
 # from Codespaces terminal
 
 # run a 30 second load test in the background
@@ -530,7 +515,6 @@ kic test load &
 kic test integration
 kic test integration
 kic test integration
-
 ```
 
 - Switch to the Grafana browser tab
