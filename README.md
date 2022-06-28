@@ -36,13 +36,16 @@ We use this Codespaces platform for `inner-loop` Kubernetes training and develop
 - k3d is a lightweight, single node, kubernetes cluster. It is essentially a wrapper for k3s and runs as a docker container. We will be using this cluster throughout the session.
 
 ```bash
+
 # check all the resources
 kubectl get all -A
+
 ```
 
 - Output from `kubectl get pods -A` should resemble this
 
 ```text
+
 NAMESPACE     NAME                                      READY   STATUS              RESTARTS   AGE
 kube-system   metrics-server-86cbb8457f-qlp8v           1/1     Running             0          48s
 kube-system   local-path-provisioner-5ff76fc89d-wfpjx   1/1     Running             0          48s
@@ -51,6 +54,7 @@ kube-system   helm-install-traefik-crd-zk5gr            0/1     Completed       
 kube-system   helm-install-traefik-mbr2l                0/1     Completed           1          48s
 kube-system   svclb-traefik-2ks5t                       2/2     Running             0          22s
 kube-system   traefik-97b44b794-txs9h                   1/1     Running             0          22s
+
 ```
 
 ## NodePorts
@@ -62,6 +66,7 @@ kube-system   traefik-97b44b794-txs9h                   1/1     Running         
 - Exposing the ports
 
 ```json
+
 // forward ports for the app
 "forwardPorts": [
   30000,
@@ -69,11 +74,13 @@ kube-system   traefik-97b44b794-txs9h                   1/1     Running         
   31080,
   32000
 ],
+
 ```
 
 - Adding labels to the ports
 
 ```json
+
 // add labels
 "portsAttributes": {
   "30000": { "label": "Prometheus" },
@@ -81,6 +88,7 @@ kube-system   traefik-97b44b794-txs9h                   1/1     Running         
   "31080": { "label": "Heartbeat" },
   "32000": { "label": "Grafana" },
 },
+
 ```
 
 ## Introduction to Kubernetes
@@ -88,6 +96,7 @@ kube-system   traefik-97b44b794-txs9h                   1/1     Running         
 To get started using Kubernetes, we will manually deploy our IMDb application. This REST application written in .NET has been containerized and allows us to run an in-memory database that accepts different types of requests.
 
 ```bash
+
 # navigate to the folder containing all our IMDb application manifests
 cd workshop-manifests/imdb
 
@@ -126,6 +135,7 @@ kubectl apply -f 03-service.yaml
 
 # query our application's endpoint
 http localhost:30080/healthz
+
 ```
 
 Open [curl.http](./curl.http)
@@ -149,6 +159,7 @@ Clicking on `Send Request` should open a new panel in Visual Studio Code with th
 ## Delete our IMDb Resources
 
 ```bash
+
 kubectl delete service imdb -n imdb
 
 kubectl get pods -n imdb
@@ -162,6 +173,7 @@ kubectl delete -f 02-deploy.yaml # this is deleting using the resource definitio
 kubectl get pods -n imdb # check that the imdb pods are gone
 
 kubectl delete ns imdb # this will remove the namespace and all of its resources
+
 ```
 
 ## GitOps with Flux
@@ -169,6 +181,7 @@ kubectl delete ns imdb # this will remove the namespace and all of its resources
 > Before moving on, you will need to create a branch within this repository.
 
 ```bash
+
 export BRANCH=`git config user.name | sed 's/ //g'`$RANDOM
 
 git checkout -b $BRANCH
@@ -177,12 +190,14 @@ git push --set-upstream origin $BRANCH
 
 # and let's also cd into the base directory of this repository
 cd /workspaces/kubecon2022
+
 ```
 
 Flux has been installed into the k3d cluster, and the Flux CLI is included in the workshop codespaces.
 You can run a check using the Flux CLI to verify that Flux has successfully been installed. You should see the following output:
 
 ```bash
+
 # flux check will verify that the flux runtime components are successfully installed
 $ flux check
 
@@ -199,17 +214,20 @@ $ flux check
 ✔ source-controller: deployment ready
 ► ghcr.io/fluxcd/source-controller:v0.24.3
 ✔ all checks passed
+
 ```
 
 Although Flux has already been installed in the cluster, we can use `flux bootstrap git` to make sure the Flux Installation manifests are committed to our Git Repository, and also configure Flux in the cluster to read from and reconcile against a specific branch and path within the Git Repository.
 
 ```bash
+
 flux bootstrap git \
   --url "https://github.com/${organization}/${repository}" \
   --branch $BRANCH \
   --token-auth \
   --password ${GITHUB_TOKEN} \
   --path "/deploy/bootstrap"
+
 ```
 
 `flux bootstrap git` will not only install or upgrade Flux within the cluster, but it will also create a commit to add the Flux installation manifests.
@@ -219,9 +237,11 @@ Additionally, `flux bootstrap git` will create a commit in the repository for th
 You can pull to see the commits that Flux added to the repository on your behalf:
 
 ```bash
+
 git pull
 
 git log --oneline
+
 ```
 
 Because we specified a `--path` of `/deploy/bootstrap`, Flux added the bootstrap manifests to the `/deploy/bootstrap` directory within your branch. The `gotk-components.yaml` (GitOps ToolKit) includes the manifests that comprise the Flux runtime, and the `gotk-sync.yaml` is where the GitRepository and Kustomization pair are defined.
@@ -229,6 +249,7 @@ Because we specified a `--path` of `/deploy/bootstrap`, Flux added the bootstrap
 The GitRepository is a Custom Resource that the Flux Source-Controller uses to determine which branch within the Git Repository to read from, and the Kustomization is a Custom Resource that the Flux Kustomize-Controller uses to determine the Path within the GitRepository in which the resources are included.
 
 ```yaml
+
 # gotk-sync.yaml components
 # This manifest was generated by flux. DO NOT EDIT.
 ---
@@ -257,6 +278,7 @@ spec:
   sourceRef:
     kind: GitRepository
     name: flux-system # the Kustomization's Source is the `flux-system` GitRepository defined above
+
 ```
 
 In the `deploy/bootstrap/flux-system` folder, you will also see a `kustomization.yaml`. This is not a Flux Kustomization, but rather a Kustomize overlay (note the `kustomize.config.k8s.io` apiVersion). Kustomize is a configuration customization tool, native to Kubernetes as a of 1.14.0. A `kustomization.yaml` is not needed for directories that include plain Kubernetes resource manifests (it is created by the kustomize-controller).
@@ -264,8 +286,10 @@ In the `deploy/bootstrap/flux-system` folder, you will also see a `kustomization
 You can see all of the Flux resources by using the Flux CLI:
 
 ```bash
+
 # at this point, you should see a gitrepository/flux-system and kustomization/flux-system
 flux get all
+
 ```
 
 ### Deploy the application and observability resources for the workshop via GitOps
@@ -273,6 +297,7 @@ flux get all
 As Flux is now configured to read from and reconcile against this GitRepository, we can create an additional Kustomization for the IMDB Application components (included in the `deploy/application` folder).
 
 ```bash
+
 # export the application kustomization
 flux create kustomization "application" \
     --source GitRepository/flux-system \
@@ -282,6 +307,7 @@ flux create kustomization "application" \
     --depends-on observability \
     --interval 1m \
     --export > deploy/bootstrap/application-kustomization.yaml
+
 ```
 
 While the `flux create` commands can directly deploy the Flux resources to the cluster, we want to adhere to GitOps Practices (where all intended changes are accomplished via Git).
@@ -289,16 +315,19 @@ While the `flux create` commands can directly deploy the Flux resources to the c
 The above command will instead export the resulting Kustomization, and add it to the `deploy/bootstrap` directory that Flux is already monitoring. Let's add, commit, and push the update.
 
 ```bash
+
 git add .
 
 git commit -m "Add application kustomization"
 
 git push
+
 ```
 
 The Sync Interval of the `flux-system` GitRepository is set to 1 minute; but the `flux-system` Kustomization is set to 10 minutes. We can trigger an automatic Flux Reconciliation by using the Flux CLI:
 
 ```bash
+
 flux reconcile source git flux-system
 
 flux reconcile kustomization flux-system
@@ -308,11 +337,13 @@ $ flux get kustomization
 NAME            REVISION                SUSPENDED       READY   MESSAGE
 application                             False           False   unable to get 'flux-system/observability' dependency: Kustomization.kustomize.toolkit.fluxcd.io "observability" not found
 flux-system     $BRANCH/$COMMIT_HASH  False           True    Applied revision: $BRANCH/$COMMIT_HASH
+
 ```
 
 The failure is actually an indication of success in this case; this is because we leveraged the Flux Kustomization `dependsOn` functionality. The `application` Kustomization depends on the `observability` Kustomization. Let's create the `observability` Kustomization and add, commit, and push those changes.
 
 ```bash
+
 # export the observability kustomization
 flux create kustomization "observability" \
     --source GitRepository/flux-system \
@@ -326,11 +357,13 @@ flux create kustomization "observability" \
 git add .
 git commit -m "Add observability kustomization"
 git push
+
 ```
 
 We can trigger another automatic reconciliation following successful push to your branch, and check the kustomizations:
 
 ```bash
+
 # you can specify a reconciliation of a flux resource and its corresponding source by passing --with-source
 flux reconcile kustomization flux-system --with-source
 
@@ -348,6 +381,7 @@ NAME            REVISION                SUSPENDED       READY   MESSAGE
 observability   $BRANCH/$COMMIT_HASH   False           True    Applied revision: $BRANCH/$COMMIT_HASH
 flux-system     $BRANCH/$COMMIT_HASH   False           True    Applied revision: $BRANCH/$COMMIT_HASH
 application     $BRANCH/$COMMIT_HASH   False           True    Applied revision: $BRANCH/$COMMIT_HASH
+
 ```
 
 ### Verify successful deployment of the observability and application components via GitOps/Flux
@@ -356,7 +390,8 @@ With the `observability` and `application` Kustomizations are reporting as `Read
 
 You can verify by running the following (the below includes sample expected output):
 
-```bash
+```text
+
 $ kubectl get pods -n logging
 NAME                        READY   STATUS    RESTARTS   AGE
 fluentbit-69c698599-wgrzs   1/1     Running   0          4m53s
@@ -375,6 +410,7 @@ $ kubectl get pods -n imdb
 NAME                    READY   STATUS    RESTARTS   AGE
 webv-6b7864b96f-5nx7z   1/1     Running   0          4m50s
 imdb-57d85d9bd-ck9vf    1/1     Running   0          4m50s
+
 ```
 
 You have now deployed the observability and application components via GitOps/Flux.
@@ -390,6 +426,7 @@ However, now that we have declaratively defined our desired state in Git, Flux w
 Let's delete the IMDB Deployment and watch Flux reconcile desired and current state:
 
 ```bash
+
 kubectl delete deployment -n imdb imdb
 
 # after approximately one minute, Flux will re-deploy the imdb deployment on your behalf
@@ -397,11 +434,13 @@ kubectl get deployment -n imdb --watch
 
 # verify that the pods came back up
 kubectl get pods -n imdb
+
 ```
 
 Flux also detects drift within the resources that you have defined in Git:
 
 ```bash
+
 # let's verify that the IMDB Deployment replicas is set to 1, as defined in Git:
 kubectl describe deployment -n imdb imdb | grep "Replicas:" -B 2 -A 2
 
@@ -422,6 +461,7 @@ kubectl describe deployment -n imdb imdb | grep "Replicas:" -B 2 -A 2
 
 # we should now only have one imdb pod running in the imdb namespace
 kubectl get pods -n imdb
+
 ```
 
 Now that Flux has ensured our running cluster state aligns with what we've defined in Git, we're ready to move onto the Observability portion of the workshop.
@@ -506,6 +546,7 @@ Grafana is an open source observability platform that allows you to visualize me
 ## Run integration and load tests
 
 ```bash
+
 # from Codespaces terminal
 
 # run a 30 second load test in the background
@@ -515,6 +556,7 @@ kic test load &
 kic test integration
 kic test integration
 kic test integration
+
 ```
 
 - Switch to the Grafana browser tab
