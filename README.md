@@ -35,27 +35,27 @@ We use this Codespaces platform for `inner-loop` Kubernetes training and develop
 
 - k3d is a lightweight, single node, kubernetes cluster. It is essentially a wrapper for k3s and runs as a docker container. We will be using this cluster throughout the session.
 
-```bash
+  ```bash
 
-# check all the resources
-kubectl get all -A
+  # check all the resources
+  kubectl get all -A
 
-```
+  ```
 
 - Output from `kubectl get pods -A` should resemble this
 
-```text
+  ```text
 
-NAMESPACE     NAME                                      READY   STATUS              RESTARTS   AGE
-kube-system   metrics-server-86cbb8457f-qlp8v           1/1     Running             0          48s
-kube-system   local-path-provisioner-5ff76fc89d-wfpjx   1/1     Running             0          48s
-kube-system   coredns-7448499f4d-dnjzl                  1/1     Running             0          48s
-kube-system   helm-install-traefik-crd-zk5gr            0/1     Completed           0          48s
-kube-system   helm-install-traefik-mbr2l                0/1     Completed           1          48s
-kube-system   svclb-traefik-2ks5t                       2/2     Running             0          22s
-kube-system   traefik-97b44b794-txs9h                   1/1     Running             0          22s
+  NAMESPACE     NAME                                      READY   STATUS              RESTARTS   AGE
+  kube-system   metrics-server-86cbb8457f-qlp8v           1/1     Running             0          48s
+  kube-system   local-path-provisioner-5ff76fc89d-wfpjx   1/1     Running             0          48s
+  kube-system   coredns-7448499f4d-dnjzl                  1/1     Running             0          48s
+  kube-system   helm-install-traefik-crd-zk5gr            0/1     Completed           0          48s
+  kube-system   helm-install-traefik-mbr2l                0/1     Completed           1          48s
+  kube-system   svclb-traefik-2ks5t                       2/2     Running             0          22s
+  kube-system   traefik-97b44b794-txs9h                   1/1     Running             0          22s
 
-```
+  ```
 
 ## NodePorts
 
@@ -65,31 +65,31 @@ kube-system   traefik-97b44b794-txs9h                   1/1     Running         
 
 - Exposing the ports
 
-```json
+  ```json
 
-// forward ports for the app
-"forwardPorts": [
-  30000,
-  30080,
-  31080,
-  32000
-],
+  // forward ports for the app
+  "forwardPorts": [
+    30000,
+    30080,
+    31080,
+    32000
+  ],
 
-```
+  ```
 
 - Adding labels to the ports
 
-```json
+  ```json
 
-// add labels
-"portsAttributes": {
-  "30000": { "label": "Prometheus" },
-  "30080": { "label": "IMDb-app" },
-  "31080": { "label": "Heartbeat" },
-  "32000": { "label": "Grafana" },
-},
+  // add labels
+  "portsAttributes": {
+    "30000": { "label": "Prometheus" },
+    "30080": { "label": "IMDb-app" },
+    "31080": { "label": "Heartbeat" },
+    "32000": { "label": "Grafana" },
+  },
 
-```
+  ```
 
 ## Introduction to Kubernetes
 
