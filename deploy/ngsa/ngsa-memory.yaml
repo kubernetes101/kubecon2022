@@ -24,7 +24,7 @@ spec:
     spec:
       containers:
       - name: app
-        image: ghcr.io/joaquinrz/ngsa-app:1.2.4 # {"$imagepolicy": "flux-system:ngsa"}
+        image: ghcr.io/joaquinrz/ngsa-app:1.2.5 # {"$imagepolicy": "flux-system:ngsa"}
         imagePullPolicy: Always
         args:
         - --in-memory
