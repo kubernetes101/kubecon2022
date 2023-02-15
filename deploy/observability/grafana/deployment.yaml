@@ -73,8 +73,6 @@ spec:
         volumeMounts:
           - name: grafana-secrets
             mountPath: /etc/config/secrets
-          - name: grafana-storage
-            mountPath: /var/lib/grafana
           - name: grafana-datasources
             mountPath: /etc/grafana/provisioning/datasources
             readOnly: false
@@ -92,9 +90,6 @@ spec:
         - name: grafana-secrets
           secret:
             secretName: grafana-secrets
-        - name: grafana-storage
-          hostPath:
-            path: /grafana
         - name: grafana-datasources
           configMap:
               defaultMode: 420
